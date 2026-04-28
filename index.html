@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>机器人情感交互问卷</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 15px;
+        }
+        .container {
+            max-width: 100%;
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 25px;
+            margin: 0 auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        h2 {
+            text-align: center;
+            color: #222;
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .intro-text {
+            font-size: 15px;
+            color: #444;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            text-align: justify;
+        }
+        .explain-box {
+            background-color: #f0f6ff;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .explain-box p {
+            font-size: 14.5px;
+            color: #2c5299;
+            line-height: 1.7;
+        }
+        .input-title {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        .phone-input-wrap {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #phoneLast4 {
+            flex: 1;
+            padding: 13px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background: #fafafa;
+        }
+        .btn {
+            padding: 13px 20px;
+            background-color: #2d8cf0;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .code-display {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2d8cf0;
+            background: #f0f6ff;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+        .link-section {
+            margin-top: 30px;
+            display: none;
+        }
+        .link-section p {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        .link-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 12px;
+            background-color: #f0f6ff;
+            color: #2c5299;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 15px;
+            border: 1px solid #2d8cf0;
+            transition: all 0.2s;
+        }
+        .link-btn:active {
+            background-color: #2d8cf0;
+            color: #fff;
+        }
+        .link-btn.disabled {
+            background-color: #eee;
+            color: #999;
+            border-color: #ccc;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>机器人情感交互问卷</h2>
+
+        <div class="intro-text">
+            您好！非常感谢您愿意抽出时间参与本次科研调查实验。本次研究围绕机器人情感交互展开，恳请您静下心来，按照自身真实感受认真完成后续填写内容。
+            <br><br>
+            为保障实验数据一一对应、便于科研统计分析，同时严格保护个人隐私，本次调查不会收集完整手机号，仅需填写手机号后四位，系统将为您自动生成一组专属三位字符身份编码，作为本次实验的唯一标识。
+        </div>
+
+        <div class="explain-box">
+            <p><strong>操作说明：</strong></p>
+            <p>请在下方输入您手机号的后四位数字，点击生成按钮，即可获取个人专属实验编码。生成成功后，下方将出现本次实验的三份问卷跳转链接，请依次完成填写。所有信息仅用于学术研究，严格保密。</p>
+        </div>
+
+        <div class="input-title">请输入手机号后四位：</div>
+        <div class="phone-input-wrap" id="inputWrap">
+            <input type="tel" id="phoneLast4" maxlength="4" placeholder="请输入4位数字">
+            <button class="btn" onclick="generateCode()">生成专属编码</button>
+        </div>
+
+        <div class="code-display" id="codeDisplay">
+            ✅ 您的专属实验编码：<span id="userCode"></span>
+            <p style="margin-top:8px;font-size:14px;color:#666;font-weight:normal;">生成成功！请点击下方链接依次完成问卷填写</p>
+        </div>
+
+        <div class="link-section" id="linkSection">
+            <p>请依次完成以下三份问卷：</p>
+            <a href="MOS.html" target="_blank" class="link-btn" id="link3">平均主观意见得分问卷（Mean Opinion Score Questionnaire）</a>
+            <a href="Godspeed.html" target="_blank" class="link-btn" id="link1">机器人整体感知评价问卷（Godspeed Questionnaire）</a>
+            <a href="Mind.html" target="_blank" class="link-btn" id="link2">机器人心智感知评价问卷（Mind Perception Questionnaire）</a>
+        </div>
+    </div>
+
+    <script>
+        let userUniqueCode = localStorage.getItem("user3Code") || "";
+
+        // 页面加载时，自动检查是否已有编码
+        window.onload = function(){
+            if(userUniqueCode){
+                showLinks(userUniqueCode);
+            }
+            // 每次打开首页都刷新已完成状态
+            checkCompletedSurveys();
+        }
+
+        function generateCode() {
+            const val = document.getElementById('phoneLast4').value.trim();
+            if (!/^\d{4}$/.test(val)) {
+                alert("请输入正确的4位数字！");
+                return;
+            }
+            let num = parseInt(val) * 8963 % 17576;
+            let code = "";
+            for(let i = 0; i < 3; i++){
+                code += String.fromCharCode(65 + num % 26);
+                num = Math.floor(num / 26);
+            }
+            userUniqueCode = code;
+            localStorage.setItem("user3Code", code);
+
+            document.getElementById("userCode").innerText = userUniqueCode;
+            document.getElementById("codeDisplay").style.display = "block";
+            document.getElementById("linkSection").style.display = "block";
+            document.getElementById("inputWrap").style.display = "none";
+
+            checkCompletedSurveys();
+        }
+
+        function showLinks(code){
+            document.getElementById("userCode").innerText = code;
+            document.getElementById("codeDisplay").style.display = "block";
+            document.getElementById("linkSection").style.display = "block";
+            document.getElementById("inputWrap").style.display = "none";
+        }
+
+        // 检查哪些问卷已经填过了，置灰链接
+        function checkCompletedSurveys(){
+            const done = JSON.parse(localStorage.getItem("completedSurveys") || "[]");
+            if(done.includes("Godspeed")){
+                document.getElementById("link1").classList.add("disabled");
+            }
+            if(done.includes("Mind")){
+                document.getElementById("link2").classList.add("disabled");
+            }
+            if(done.includes("MOS")){
+                document.getElementById("link3").classList.add("disabled");
+            }
+        }
+    </script>
+</body>
+</html>

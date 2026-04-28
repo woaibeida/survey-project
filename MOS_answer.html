@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Emotional MOS 情绪表达主观评价问卷</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            padding: 15px;
+        }
+        .container {
+            max-width: 100%;
+            background: #fff;
+            border-radius: 16px;
+            padding: 25px 20px;
+            margin: 0 auto;
+        }
+        h2 {
+            text-align: center;
+            font-size: 20px;
+            color: #222;
+            margin-bottom: 8px;
+        }
+        .title-en {
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 25px;
+        }
+        .note-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #444;
+        }
+        .part-wrap {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        .part-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 20px 0 12px;
+            color: #2d8cf0;
+        }
+        .video-wrap {
+            margin: 10px 0;
+        }
+        video {
+            width: 100%;
+            border-radius: 10px;
+            background: #000;
+        }
+        .countdown-tip {
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+            margin: 8px 0 15px;
+        }
+        .part-content {
+            pointer-events: none;
+            opacity: 0.4;
+        }
+        .part-content.unlock {
+            pointer-events: auto;
+            opacity: 1;
+        }
+        .q-item {
+            margin-bottom: 18px;
+        }
+        .q-text {
+            font-size: 14.5px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+        }
+        .score-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+            flex: 1;
+        }
+        .score-label input {
+            margin-bottom: 4px;
+            transform: scale(1.1);
+        }
+        .radio-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+        .radio-label {
+            font-size: 14px;
+            color: #333;
+        }
+        .submit-wrap {
+            margin-top: 35px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #2d8cf0;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>机器人情绪表达主观评价问卷</h2>
+        <div class="title-en">Emotional MOS Questionnaire</div>
+
+        <div class="note-box">
+            <strong>填写说明：</strong><br>
+            请在观看完当前视频后，根据你的第一印象回答以下问题。
+            本问卷用于评估视频中机器人情绪表达的识别效果、自然度、表现力和整体质量。
+            除情绪识别题外，其余题目均采用 7 点量表评分。
+            <br><br>
+            <strong>评分标准：</strong><br>
+            1 = 非常不同意 2 = 不同意 3 = 比较不同意 4 = 一般<br>
+            5 = 比较同意 6 = 同意 7 = 非常同意
+        </div>
+
+        <!-- Part A：情绪识别 -->
+        <div class="part-wrap">
+            <div class="part-title">Part A：情绪识别</div>
+            <div class="video-wrap">
+                <video id="videoA" playsinline webkit-playsinline controls>
+                    <source src="angry.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="countdown-tip" id="tipA">请观看视频，剩余 <span id="timeA">5</span> 秒</div>
+            <div class="part-content" id="contentA">
+                <div class="q-item">
+                    <div class="q-text">Q1. 你认为该视频表达的主要情绪是什么？</div>
+                    <div class="radio-group">
+                        <label class="radio-label"><input type="radio" name="q1" value="Happy"> Happy</label>
+                        <label class="radio-label"><input type="radio" name="q1" value="Afraid"> Afraid</label>
+                        <label class="radio-label"><input type="radio" name="q1" value="Sad"> Sad</label>
+                        <label class="radio-label"><input type="radio" name="q1" value="Angry"> Angry</label>
+                        <label class="radio-label"><input type="radio" name="q1" value="Uncertain"> Uncertain</label>
+                    </div>
+                </div>
+                <div class="q-item">
+                    <div class="q-text">Q2. 你对自己刚才的判断有多确定？</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q2" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q2" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q2" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q2" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q2" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q2" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q2" value="7">7</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part B：目标情绪识别清晰度 -->
+        <div class="part-wrap">
+            <div class="part-title">Part B：目标情绪识别清晰度</div>
+            <div class="video-wrap">
+                <video id="videoB" playsinline webkit-playsinline controls>
+                    <source src="angry.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="countdown-tip" id="tipB">请观看视频，剩余 <span id="timeB">5</span> 秒</div>
+            <div class="part-content" id="contentB">
+                <div class="q-item">
+                    <div class="q-text">Q3. 我能够清楚感受到该视频想表达的情绪。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q3" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q3" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q3" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q3" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q3" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q3" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q3" value="7">7</label>
+                    </div>
+                </div>
+                <div class="q-item">
+                    <div class="q-text">Q4. 该视频中的情绪表达是明确的，不容易与其他情绪混淆。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q4" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q4" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q4" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q4" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q4" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q4" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q4" value="7">7</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part C：情绪自然度 -->
+        <div class="part-wrap">
+            <div class="part-title">Part C：情绪自然度</div>
+            <div class="video-wrap">
+                <video id="videoC" playsinline webkit-playsinline controls>
+                    <source src="angry.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="countdown-tip" id="tipC">请观看视频，剩余 <span id="timeC">5</span> 秒</div>
+            <div class="part-content" id="contentC">
+                <div class="q-item">
+                    <div class="q-text">Q5. 该视频中的情绪表达看起来是自然的。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q5" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q5" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q5" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q5" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q5" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q5" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q5" value="7">7</label>
+                    </div>
+                </div>
+                <div class="q-item">
+                    <div class="q-text">Q6. 该视频中的动作变化符合日常交互中对该情绪的直观感受。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q6" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q6" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q6" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q6" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q6" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q6" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q6" value="7">7</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part D：情绪表现力 -->
+        <div class="part-wrap">
+            <div class="part-title">Part D：情绪表现力</div>
+            <div class="video-wrap">
+                <video id="videoD" playsinline webkit-playsinline controls>
+                    <source src="angry.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="countdown-tip" id="tipD">请观看视频，剩余 <span id="timeD">5</span> 秒</div>
+            <div class="part-content" id="contentD">
+                <div class="q-item">
+                    <div class="q-text">Q7. 该视频中的情绪表达具有足够的表现力。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q7" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q7" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q7" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q7" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q7" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q7" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q7" value="7">7</label>
+                    </div>
+                </div>
+                <div class="q-item">
+                    <div class="q-text">Q8. 该视频中的情绪强度是清晰可感知的。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q8" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q8" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q8" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q8" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q8" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q8" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q8" value="7">7</label>
+                    </div>
+                </div>
+                <div class="q-item">
+                    <div class="q-text">Q9. 该视频中的情绪表达不会显得过弱或不足。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q9" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q9" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q9" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q9" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q9" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q9" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q9" value="7">7</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part E：动作与情绪一致性 -->
+        <div class="part-wrap">
+            <div class="part-title">Part E：动作与情绪一致性</div>
+            <div class="video-wrap">
+                <video id="videoE" playsinline webkit-playsinline controls>
+                    <source src="angry.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="countdown-tip" id="tipE">请观看视频，剩余 <span id="timeE">5</span> 秒</div>
+            <div class="part-content" id="contentE">
+                <div class="q-item">
+                    <div class="q-text">Q10. 视频中的动作与所表达的情绪是一致的。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q10" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q10" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q10" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q10" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q10" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q10" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q10" value="7">7</label>
+                    </div>
+                </div>
+                <div class="q-item">
+                    <div class="q-text">Q11. 该视频中的运动节奏、姿态变化和交互方式能够支持该情绪的表达。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q11" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q11" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q11" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q11" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q11" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q11" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q11" value="7">7</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part F：情绪强度合适性 -->
+        <div class="part-wrap">
+            <div class="part-title">Part F：情绪强度合适性</div>
+            <div class="video-wrap">
+                <video id="videoF" playsinline webkit-playsinline controls>
+                    <source src="angry.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="countdown-tip" id="tipF">请观看视频，剩余 <span id="timeF">5</span> 秒</div>
+            <div class="part-content" id="contentF">
+                <div class="q-item">
+                    <div class="q-text">Q12. 该视频中的情绪表达强度是合适的。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q12" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q12" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q12" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q12" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q12" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q12" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q12" value="7">7</label>
+                    </div>
+                </div>
+                <div class="q-item">
+                    <div class="q-text">Q13. 该视频中的情绪表达不会显得过于夸张。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q13" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q13" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q13" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q13" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q13" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q13" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q13" value="7">7</label>
+                    </div>
+                </div>
+                <div class="q-item">
+                    <div class="q-text">Q14. 该视频中的情绪表达不会显得过于平淡。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q14" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q14" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q14" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q14" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q14" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q14" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q14" value="7">7</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part G：整体质量评价 -->
+        <div class="part-wrap">
+            <div class="part-title">Part G：整体质量评价</div>
+            <div class="video-wrap">
+                <video id="videoG" playsinline webkit-playsinline controls>
+                    <source src="angry.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="countdown-tip" id="tipG">请观看视频，剩余 <span id="timeG">5</span> 秒</div>
+            <div class="part-content" id="contentG">
+                <div class="q-item">
+                    <div class="q-text">Q15. 总体来看，该视频的情绪表达效果较好。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q15" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q15" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q15" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q15" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q15" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q15" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q15" value="7">7</label>
+                    </div>
+                </div>
+                <div class="q-item">
+                    <div class="q-text">Q16. 该视频中的情绪表达能够增强交互体验。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q16" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q16" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q16" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q16" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q16" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q16" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q16" value="7">7</label>
+                    </div>
+                </div>
+                <div class="q-item">
+                    <div class="q-text">Q17. 如果在真实人机交互中出现这种表达，我会觉得它是合适且可接受的。</div>
+                    <div class="score-row">
+                        <label class="score-label"><input type="radio" name="q17" value="1">1</label>
+                        <label class="score-label"><input type="radio" name="q17" value="2">2</label>
+                        <label class="score-label"><input type="radio" name="q17" value="3">3</label>
+                        <label class="score-label"><input type="radio" name="q17" value="4">4</label>
+                        <label class="score-label"><input type="radio" name="q17" value="5">5</label>
+                        <label class="score-label"><input type="radio" name="q17" value="6">6</label>
+                        <label class="score-label"><input type="radio" name="q17" value="7">7</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="submit-wrap">
+            <button class="submit-btn" onclick="submitSurvey()">提交问卷</button>
+        </div>
+    </div>
+
+    <script>
+        const userCode = localStorage.getItem("user3Code") || "未知";
+        const completed = JSON.parse(localStorage.getItem("completedSurveys") || "[]");
+        if(completed.includes("MOS")){
+            alert("您已完成该问卷，请勿重复作答！");
+            window.location.href = "index.html";
+        }
+
+        const parts = [
+            { video: document.getElementById('videoA'), time: document.getElementById('timeA'), tip: document.getElementById('tipA'), content: document.getElementById('contentA') },
+            { video: document.getElementById('videoB'), time: document.getElementById('timeB'), tip: document.getElementById('tipB'), content: document.getElementById('contentB') },
+            { video: document.getElementById('videoC'), time: document.getElementById('timeC'), tip: document.getElementById('tipC'), content: document.getElementById('contentC') },
+            { video: document.getElementById('videoD'), time: document.getElementById('timeD'), tip: document.getElementById('tipD'), content: document.getElementById('contentD') },
+            { video: document.getElementById('videoE'), time: document.getElementById('timeE'), tip: document.getElementById('tipE'), content: document.getElementById('contentE') },
+            { video: document.getElementById('videoF'), time: document.getElementById('timeF'), tip: document.getElementById('tipF'), content: document.getElementById('contentF') },
+            { video: document.getElementById('videoG'), time: document.getElementById('timeG'), tip: document.getElementById('tipG'), content: document.getElementById('contentG') },
+        ];
+
+        parts.forEach((p, i) => {
+            let countdown = 5;
+            let timer;
+            p.video.addEventListener('play', () => {
+                timer = setInterval(() => {
+                    countdown--;
+                    p.time.innerText = countdown;
+                    if(countdown <= 0){
+                        clearInterval(timer);
+                        p.tip.innerText = "✅ 视频观看完成，请开始作答";
+                        p.content.classList.add('unlock');
+                    }
+                }, 1000);
+            });
+        });
+
+        async function submitSurvey(){
+            const getData = (name) => document.querySelector(`input[name="${name}"]:checked`)?.value || "未作答";
+            const data = {
+                time: new Date().toLocaleString(),
+                userCode: userCode,
+                type: "MOS情绪表达主观评价问卷",
+                q1:getData("q1"),q2:getData("q2"),q3:getData("q3"),q4:getData("q4"),q5:getData("q5"),
+                q6:getData("q6"),q7:getData("q7"),q8:getData("q8"),q9:getData("q9"),q10:getData("q10"),
+                q11:getData("q11"),q12:getData("q12"),q13:getData("q13"),q14:getData("q14"),q15:getData("q15"),
+                q16:getData("q16"),q17:getData("q17")
+            };
+            const res = await fetch("/submit",{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify(data)
+            });
+            if(res.ok){
+                let done = JSON.parse(localStorage.getItem("completedSurveys") || "[]");
+                if(!done.includes("MOS")){
+                    done.push("MOS");
+                    localStorage.setItem("completedSurveys", JSON.stringify(done));
+                }
+                alert("✅ MOS问卷提交成功！");
+                window.location.href = "index.html";
+            }else{
+                alert("提交失败，请重试");
+            }
+        }
+    </script>
+</body>
+</html>

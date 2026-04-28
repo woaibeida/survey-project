@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MOS Emotion 情绪感知</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 100%;
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px 25px;
+            margin: 0 auto;
+        }
+        h2 {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        .title-en {
+            text-align: center;
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .verify-box {
+            background: #f0f6ff;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .code-input {
+            width: 100%;
+            padding: 14px;
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 4px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        .verify-btn {
+            width: 100%;
+            padding: 14px;
+            background: #2d8cf0;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .error-info {
+            background: #fee;
+            color: #d93025;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .success-info {
+            background: #e6f7ef;
+            color: #009a54;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .sound-remind {
+            color: #d93025;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 12px;
+            font-weight: 500;
+            display: none;
+        }
+        .video-desc {
+            font-size: 15px;
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 15px;
+            text-align: justify;
+            display: none;
+        }
+        .video-wrap {
+            display: none;
+            margin: 10px 0;
+        }
+        video {
+            width: 100%;
+            border-radius: 10px;
+            background: #000;
+        }
+        .countdown-tip {
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+            margin: 8px 0 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>机器人情绪感知评价问卷</h2>
+        <div class="title-en">MOS Emotion Questionnaire</div>
+
+        <div class="verify-box" id="verifyBox">
+            <p>请输入您在首页获取的3位专属实验编码（大写英文字母）</p>
+            <input type="text" class="code-input" id="inputCode" maxlength="3" placeholder="例如：ABC">
+            <button class="verify-btn" onclick="checkCode()">验证身份</button>
+        </div>
+
+        <div class="error-info" id="errorInfo">
+            ❌ 编码错误，请填写首页正确生成的3位专属编码
+        </div>
+        <div class="success-info" id="successInfo">✅ 身份验证通过</div>
+
+        <div class="sound-remind" id="soundRemind">
+            ⚠️ 请务必打开设备音量，保证正常收听音频
+        </div>
+
+        <div class="video-desc" id="videoDesc">
+            您好！接下来将为您播放一段情绪视频。请您安心静心观看，等待观看时长结束后，将自动跳转至问卷作答页面。感谢您的配合与认真参与！
+        </div>
+
+        <div class="video-wrap" id="videoWrap">
+            <video id="emotionVideo" playsinline webkit-playsinline controls>
+                <source src="video.mp4" type="video/mp4">
+                您的浏览器不支持视频播放
+            </video>
+        </div>
+
+        <div class="countdown-tip" id="countdownTip">
+            请认真观看视频~ 剩余<span id="timeNum">120</span>秒
+        </div>
+    </div>
+
+    <script>
+        const rightCode = localStorage.getItem("user3Code") || "";
+        let countDownTime = 120;
+        let timer = null;
+
+        function checkCode(){
+            let inputVal = document.getElementById("inputCode").value.trim().toUpperCase();
+            const errorDom = document.getElementById("errorInfo");
+            const successDom = document.getElementById("successInfo");
+            const soundRemind = document.getElementById("soundRemind");
+            const videoDesc = document.getElementById("videoDesc");
+            const videoWrap = document.getElementById("videoWrap");
+            const countdownTip = document.getElementById("countdownTip");
+
+            errorDom.style.display = "none";
+
+            if(!/^[A-Z]{3}$/.test(inputVal) || inputVal !== rightCode){
+                errorDom.style.display = "block";
+                return;
+            }
+
+            document.getElementById("verifyBox").style.display = "none";
+            successDom.style.display = "block";
+            soundRemind.style.display = "block";
+            videoDesc.style.display = "block";
+            videoWrap.style.display = "block";
+            countdownTip.style.display = "block";
+
+            const video = document.getElementById("emotionVideo");
+            video.play();
+            startCountdown();
+        }
+
+        function startCountdown(){
+            const timeNum = document.getElementById("timeNum");
+            timer = setInterval(() => {
+                countDownTime--;
+                timeNum.innerText = countDownTime;
+
+                if(countDownTime <= 0){
+                    clearInterval(timer);
+                    window.location.href = "MOS_answer.html";
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
