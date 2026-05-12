@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>机器人动作一评价问卷</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            padding: 15px;
+        }
+        .container {
+            max-width: 100%;
+            background: #fff;
+            border-radius: 16px;
+            padding: 25px 20px;
+            margin: 0 auto;
+        }
+        h2 {
+            text-align: center;
+            font-size: 20px;
+            color: #222;
+            margin-bottom: 8px;
+        }
+        .title-en {
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 25px;
+        }
+        .note-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #444;
+        }
+        .part-wrap {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        .part-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 20px 0 12px;
+            color: #2d8cf0;
+        }
+        .video-wrap {
+            margin: 10px 0;
+        }
+        video {
+            width: 100%;
+            border-radius: 10px;
+            background: #000;
+        }
+        .countdown-tip {
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+            margin: 8px 0 15px;
+        }
+        .part-content {
+            pointer-events: none;
+            opacity: 0.4;
+        }
+        .part-content.unlock {
+            pointer-events: auto;
+            opacity: 1;
+        }
+        .q-item {
+            margin-bottom: 18px;
+        }
+        .q-text {
+            font-size: 14.5px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+        }
+        .score-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+            flex: 1;
+        }
+        .score-label input {
+            margin-bottom: 4px;
+            transform: scale(1.1);
+        }
+        .radio-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+        .radio-label {
+            font-size: 14px;
+            color: #333;
+        }
+        .submit-wrap {
+            margin-top: 35px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #2d8cf0;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .hide-video {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>机器人动作一评价问卷</h2>
+        <div class="title-en">Action 1 - MOS + Godspeed + Mind</div>
+
+        <div class="note-box">
+            <strong>填写说明：</strong><br>
+            请先观看下方视频，再根据你的第一印象回答所有问题。<br>
+            所有题目均采用 7 点量表评分。<br><br>
+            <strong>评分标准：</strong><br>
+            1 = 非常不同意 2 = 不同意 3 = 比较不同意 4 = 一般<br>
+            5 = 比较同意 6 = 同意 7 = 非常同意
+        </div>
+
+        <!-- 视频 -->
+        <div class="part-wrap">
+            <div class="part-title">观看实验视频</div>
+            <div class="video-wrap">
+                <video id="mainVideo" playsinline webkit-playsinline controls>
+                    <source src="angry.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="countdown-tip" id="mainTip">请观看视频，剩余 <span id="mainTime">5</span> 秒</div>
+
+            <div class="part-content" id="allContent">
+
+<!-- ==============================================
+MOS 问卷 17题
+============================================== -->
+<div class="part-title">一、情绪表达主观评价（MOS）</div>
+<div class="q-item">
+    <div class="q-text">Q1. 你认为该视频表达的主要情绪是什么？</div>
+    <div class="radio-group">
+        <label class="radio-label"><input type="radio" name="mos1" value="Happy"> Happy</label>
+        <label class="radio-label"><input type="radio" name="mos1" value="Afraid"> Afraid</label>
+        <label class="radio-label"><input type="radio" name="mos1" value="Sad"> Sad</label>
+        <label class="radio-label"><input type="radio" name="mos1" value="Angry"> Angry</label>
+        <label class="radio-label"><input type="radio" name="mos1" value="Uncertain"> Uncertain</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q2. 你对自己刚才的判断有多确定？</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos2" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos2" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos2" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos2" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos2" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos2" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos2" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q3. 我能够清楚感受到该视频想表达的情绪。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos3" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos3" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos3" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos3" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos3" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos3" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos3" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q4. 该视频中的情绪表达是明确的，不容易与其他情绪混淆。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos4" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos4" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos4" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos4" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos4" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos4" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos4" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q5. 该视频中的情绪表达看起来是自然的。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos5" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos5" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos5" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos5" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos5" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos5" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos5" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q6. 该视频中的动作变化符合日常交互中对该情绪的直观感受。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos6" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos6" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos6" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos6" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos6" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos6" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos6" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q7. 该视频中的情绪表达具有足够的表现力。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos7" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos7" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos7" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos7" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos7" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos7" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos7" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q8. 该视频中的情绪强度是清晰可感知的。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos8" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos8" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos8" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos8" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos8" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos8" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos8" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q9. 该视频中的情绪表达不会显得过弱或不足。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos9" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos9" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos9" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos9" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos9" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos9" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos9" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q10. 视频中的动作与所表达的情绪是一致的。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos10" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos10" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos10" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos10" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos10" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos10" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos10" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q11. 该视频中的运动节奏、姿态变化和交互方式能够支持该情绪的表达。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos11" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos11" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos11" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos11" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos11" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos11" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos11" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q12. 该视频中的情绪表达强度是合适的。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos12" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos12" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos12" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos12" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos12" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos12" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos12" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q13. 该视频中的情绪表达不会显得过于夸张。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos13" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos13" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos13" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos13" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos13" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos13" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos13" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q14. 该视频中的情绪表达不会显得过于平淡。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos14" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos14" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos14" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos14" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos14" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos14" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos14" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q15. 总体来看，该视频的情绪表达效果较好。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos15" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos15" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos15" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos15" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos15" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos15" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos15" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q16. 该视频中的情绪表达能够增强交互体验。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos16" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos16" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos16" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos16" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos16" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos16" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos16" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q17. 如果在真实人机交互中出现这种表达，我会觉得它是合适且可接受的。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mos17" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mos17" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mos17" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mos17" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mos17" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mos17" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mos17" value="7">7</label>
+    </div>
+</div>
+
+<!-- ==============================================
+Godspeed 问卷 24题
+============================================== -->
+<div class="part-title">二、机器人整体感知评价（Godspeed）</div>
+<div class="q-item">
+    <div class="q-text">Q1. 该机器人看起来更像一个具有情感的主体，而不仅仅是一个执行动作的机器。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god1" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god1" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god1" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god1" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god1" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god1" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god1" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q2. 该机器人的表达方式让我感觉它更接近人的情绪表达。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god2" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god2" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god2" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god2" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god2" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god2" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god2" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q3. 该机器人的行为给我一种“像人在表达情绪”的感觉。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god3" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god3" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god3" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god3" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god3" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god3" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god3" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q4. 与普通机械动作相比，该机器人的行为更像是带有个体特征的表达。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god4" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god4" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god4" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god4" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god4" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god4" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god4" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q5. 该机器人的行为看起来是生动的，而不是呆板的。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god5" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god5" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god5" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god5" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god5" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god5" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god5" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q6. 该机器人看起来像是在与人进行真实互动。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god6" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god6" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god6" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god6" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god6" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god6" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god6" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q7. 该机器人的动作表现出一定的活力和变化感。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god7" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god7" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god7" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god7" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god7" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god7" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god7" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q8. 该机器人给我的感觉更像是“有反应的个体”，而不是静态机械体。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god8" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god8" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god8" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god8" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god8" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god8" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god8" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q9. 这种表达方式让我感觉舒适。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god9" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god9" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god9" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god9" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god9" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god9" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god9" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q10. 我愿意与采用这种表达方式的机器人进行交互。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god10" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god10" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god10" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god10" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god10" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god10" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god10" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q11. 该机器人的表达方式让我觉得亲和。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god11" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god11" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god11" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god11" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god11" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god11" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god11" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q12. 该机器人的表现整体上是讨人喜欢的。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god12" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god12" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god12" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god12" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god12" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god12" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god12" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q13. 该机器人的行为看起来是合理的。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god13" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god13" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god13" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god13" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god13" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god13" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god13" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q14. 该机器人似乎能够根据场景做出合适的表达。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god14" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god14" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god14" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god14" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god14" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god14" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god14" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q15. 该机器人的动作让我感觉它能够理解当前交互情境。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god15" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god15" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god15" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god15" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god15" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god15" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god15" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q16. 该机器人的行为表现出一定的智能性，而不是简单重复。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god16" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god16" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god16" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god16" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god16" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god16" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god16" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q17. 在这种表达方式下，我会感到安全。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god17" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god17" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god17" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god17" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god17" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god17" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god17" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q18. 该机器人的行为不会让我感到被威胁。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god18" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god18" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god18" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god18" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god18" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god18" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god18" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q19. 与该机器人进行交互时，我不会感到不安。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god19" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god19" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god19" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god19" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god19" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god19" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god19" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q20. 即使在表达较强烈情绪时，该机器人也不会让我感到危险。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god20" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god20" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god20" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god20" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god20" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god20" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god20" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q21. 总体来看，该机器人给我的整体印象是积极的。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god21" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god21" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god21" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god21" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god21" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god21" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god21" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q22. 总体来看，该机器人适合作为一个可交互的情感表达主体。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god22" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god22" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god22" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god22" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god22" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god22" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god22" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q23. 该机器人的整体表达方式增强了我对交互过程的接受度。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god23" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god23" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god23" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god23" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god23" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god23" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god23" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q24. 我认为该机器人具备较好的整体交互感知表现。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="god24" value="1">1</label>
+        <label class="score-label"><input type="radio" name="god24" value="2">2</label>
+        <label class="score-label"><input type="radio" name="god24" value="3">3</label>
+        <label class="score-label"><input type="radio" name="god24" value="4">4</label>
+        <label class="score-label"><input type="radio" name="god24" value="5">5</label>
+        <label class="score-label"><input type="radio" name="god24" value="6">6</label>
+        <label class="score-label"><input type="radio" name="god24" value="7">7</label>
+    </div>
+</div>
+
+<!-- ==============================================
+Mind 问卷 20题
+============================================== -->
+<div class="part-title">三、机器人心智感知评价（Mind）</div>
+<div class="q-item">
+    <div class="q-text">Q1. 我觉得该机器人能够表达自己的情绪状态。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind1" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind1" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind1" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind1" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind1" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind1" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind1" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q2. 我觉得该机器人像是能够感受到快乐、悲伤、害怕或愤怒等情绪。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind2" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind2" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind2" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind2" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind2" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind2" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind2" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q3. 我觉得该机器人的行为反映了其内部的情感变化。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind3" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind3" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind3" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind3" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind3" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind3" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind3" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q4. 我觉得该机器人并不是单纯执行动作，而是在“体验”某种情绪。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind4" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind4" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind4" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind4" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind4" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind4" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind4" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q5. 我觉得该机器人能够对交互过程产生情感反应。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind5" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind5" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind5" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind5" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind5" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind5" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind5" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q6. 我觉得该机器人像是会在不同情境下产生不同感受。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind6" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind6" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind6" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind6" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind6" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind6" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind6" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q7. 我觉得该机器人具有某种“情感上的存在感”。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind7" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind7" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind7" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind7" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind7" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind7" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind7" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q8. 我觉得该机器人表现得像是能够被外界事件所影响。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind8" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind8" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind8" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind8" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind8" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind8" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind8" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q9. 我觉得该机器人的行为是有意图的。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind9" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind9" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind9" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind9" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind9" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind9" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind9" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q10. 我觉得该机器人的动作是在根据情境主动做出反应。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind10" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind10" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind10" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind10" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind10" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind10" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind10" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q11. 我觉得该机器人的行为具有一定目的性。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind11" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind11" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind11" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind11" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind11" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind11" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind11" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q12. 我觉得该机器人能够根据交互场景调整自己的表达方式。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind12" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind12" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind12" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind12" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind12" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind12" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind12" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q13. 我觉得该机器人的行为不是机械重复，而是具有一定自主性的。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind13" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind13" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind13" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind13" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind13" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind13" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind13" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q14. 我觉得该机器人像是在主动参与交互，而不仅仅是在被动执行动作。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind14" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind14" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind14" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind14" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind14" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind14" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind14" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q15. 我觉得该机器人能够控制自己的行为表现。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind15" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind15" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind15" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind15" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind15" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind15" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind15" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q16. 我觉得该机器人的动作体现出某种“自主决策”感。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind16" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind16" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind16" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind16" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind16" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind16" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind16" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q17. 总体来看，我觉得该机器人像是一个具有心智的主体。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind17" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind17" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind17" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind17" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind17" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind17" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind17" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q18. 总体来看，我觉得该机器人不仅是机器动作的集合，而像是“有感受、有反应”的个体。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind18" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind18" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind18" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind18" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind18" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind18" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind18" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q19. 该机器人给我的感觉更接近“有内在状态的交互对象”。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind19" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind19" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind19" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind19" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind19" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind19" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind19" value="7">7</label>
+    </div>
+</div>
+<div class="q-item">
+    <div class="q-text">Q20. 在观看完这组视频后，我认为该机器人具有一定程度的心理存在感。</div>
+    <div class="score-row">
+        <label class="score-label"><input type="radio" name="mind20" value="1">1</label>
+        <label class="score-label"><input type="radio" name="mind20" value="2">2</label>
+        <label class="score-label"><input type="radio" name="mind20" value="3">3</label>
+        <label class="score-label"><input type="radio" name="mind20" value="4">4</label>
+        <label class="score-label"><input type="radio" name="mind20" value="5">5</label>
+        <label class="score-label"><input type="radio" name="mind20" value="6">6</label>
+        <label class="score-label"><input type="radio" name="mind20" value="7">7</label>
+    </div>
+</div>
+
+            </div>
+        </div>
+
+        <div class="submit-wrap">
+            <button class="submit-btn" onclick="submitAction1()">提交全部问卷</button>
+        </div>
+    </div>
+
+    <script>
+        // 视频解锁全部题目
+        const mainVideo = document.getElementById('mainVideo');
+        const mainTime = document.getElementById('mainTime');
+        const mainTip = document.getElementById('mainTip');
+        const allContent = document.getElementById('allContent');
+
+        let countdown = 5;
+        let timer;
+        mainVideo.addEventListener('play', () => {
+            timer = setInterval(() => {
+                countdown--;
+                mainTime.innerText = countdown;
+                if(countdown <= 0){
+                    clearInterval(timer);
+                    mainTip.innerText = "✅ 视频观看完成，请开始作答所有题目";
+                    allContent.classList.add('unlock');
+                }
+            }, 1000);
+        });
+
+        // 统一提交
+        async function submitAction1(){
+            // 检查是否全部答完
+            function checkAll(){
+                let ok = true;
+                for(let i=1;i<=17;i++) if(!document.querySelector(`input[name="mos${i}"]:checked`)) ok=false;
+                for(let i=1;i<=24;i++) if(!document.querySelector(`input[name="god${i}"]:checked`)) ok=false;
+                for(let i=1;i<=20;i++) if(!document.querySelector(`input[name="mind${i}"]:checked`)) ok=false;
+                return ok;
+            }
+
+            if(!checkAll()){
+                alert("还有题目未完成，请继续答题");
+                return;
+            }
+
+            // 获取答案
+            const g = n => document.querySelector(`input[name="${n}"]:checked`)?.value || "";
+            const userCode = localStorage.getItem("user3Code") || "未知";
+
+            const data = {
+                time: new Date().toLocaleString(),
+                userCode: userCode,
+                type: "动作一问卷（三合一）",
+                action: "action1",
+                mos1:g("mos1"),mos2:g("mos2"),mos3:g("mos3"),mos4:g("mos4"),mos5:g("mos5"),mos6:g("mos6"),mos7:g("mos7"),mos8:g("mos8"),mos9:g("mos9"),mos10:g("mos10"),mos11:g("mos11"),mos12:g("mos12"),mos13:g("mos13"),mos14:g("mos14"),mos15:g("mos15"),mos16:g("mos16"),mos17:g("mos17"),
+                god1:g("god1"),god2:g("god2"),god3:g("god3"),god4:g("god4"),god5:g("god5"),god6:g("god6"),god7:g("god7"),god8:g("god8"),god9:g("god9"),god10:g("god10"),god11:g("god11"),god12:g("god12"),god13:g("god13"),god14:g("god14"),god15:g("god15"),god16:g("god16"),god17:g("god17"),god18:g("god18"),god19:g("god19"),god20:g("god20"),god21:g("god21"),god22:g("god22"),god23:g("god23"),god24:g("god24"),
+                mind1:g("mind1"),mind2:g("mind2"),mind3:g("mind3"),mind4:g("mind4"),mind5:g("mind5"),mind6:g("mind6"),mind7:g("mind7"),mind8:g("mind8"),mind9:g("mind9"),mind10:g("mind10"),mind11:g("mind11"),mind12:g("mind12"),mind13:g("mind13"),mind14:g("mind14"),mind15:g("mind15"),mind16:g("mind16"),mind17:g("mind17"),mind18:g("mind18"),mind19:g("mind19"),mind20:g("mind20")
+            };
+
+            const res = await fetch("/submit",{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify(data)
+            });
+
+            if(res.ok){
+                let done = JSON.parse(localStorage.getItem("completedActions")||"[]");
+                if(!done.includes("action1")) done.push("action1");
+                localStorage.setItem("completedActions",JSON.stringify(done));
+                alert("✅ 动作一全部问卷提交成功！");
+                window.location.href = "index.html";
+            }else{
+                alert("提交失败，请重试");
+            }
+        }
+    </script>
+</body>
+</html>
