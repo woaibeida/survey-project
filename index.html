@@ -41,7 +41,7 @@
             background-color: #f0f6ff;
             padding: 16px;
             border-radius: 10px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         .explain-box p {
             font-size: 14.5px;
@@ -51,31 +51,35 @@
         .input-title {
             font-size: 16px;
             color: #333;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
+            margin-top:15px;
         }
-        .phone-input-wrap {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 20px;
+        input,select{
+            width:100%;
+            padding:13px;
+            border:1px solid #ddd;
+            border-radius:8px;
+            font-size:16px;
+            background:#fafafa;
         }
-        #phoneLast4 {
-            flex: 1;
-            padding: 13px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            background: #fafafa;
+        input:disabled,select:disabled{
+            background:#eee;
+            color:#666;
         }
         .btn {
-            padding: 13px 20px;
+            width:100%;
+            padding:13px;
             background-color: #2d8cf0;
             color: #fff;
             border: none;
             border-radius: 8px;
-            font-size: 15px;
-            cursor: pointer;
-            white-space: nowrap;
+            font-size:16px;
+            margin-top:15px;
+            cursor:pointer;
+        }
+        .btn:disabled{
+            background:#ccc;
+            cursor:not-allowed;
         }
         .code-display {
             margin-top: 15px;
@@ -109,11 +113,6 @@
             border-radius: 8px;
             font-size: 15px;
             border: 1px solid #2d8cf0;
-            transition: all 0.2s;
-        }
-        .link-btn:active {
-            background-color: #2d8cf0;
-            color: #fff;
         }
         .link-btn.disabled {
             background-color: #eee;
@@ -126,7 +125,6 @@
 <body>
     <div class="container">
         <h2>机器人情感交互问卷</h2>
-
         <div class="intro-text">
             您好！非常感谢您愿意抽出时间参与本次科研调查实验。本次研究围绕机器人情感交互展开，恳请您静下心来，按照自身真实感受认真完成后续填写内容。
             <br><br>
@@ -135,82 +133,139 @@
 
         <div class="explain-box">
             <p><strong>操作说明：</strong></p>
-            <p>请在下方输入您手机号的后四位数字，点击生成按钮，即可获取个人专属实验编码。生成成功后，下方将出现本次实验的三份问卷跳转链接，请依次完成填写。所有信息仅用于学术研究，严格保密。</p>
+            <p>请在下方输入您手机号的后四位数字与个人信息，点击生成按钮，即可获取个人专属实验编码。生成成功后，下方将出现本次实验的四份机器人动作任务，请依次完成填写。所有信息仅用于学术研究，严格保密。</p>
         </div>
 
         <div class="input-title">请输入手机号后四位：</div>
-        <div class="phone-input-wrap" id="inputWrap">
-            <input type="tel" id="phoneLast4" maxlength="4" placeholder="请输入4位数字">
-            <button class="btn" onclick="generateCode()">生成专属编码</button>
-        </div>
+        <input type="tel" id="phoneLast4" maxlength="4" placeholder="请输入4位数字">
+
+        <div class="input-title">年龄：</div>
+        <input type="number" id="age" placeholder="请输入年龄">
+
+        <div class="input-title">性别：</div>
+        <select id="gender">
+            <option value="">请选择</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
+        </select>
+
+        <div class="input-title">年级：</div>
+        <input type="text" id="grade" placeholder="例：大一/研一/2022级">
+
+        <div class="input-title">专业：</div>
+        <input type="text" id="major" placeholder="例：计算机科学与技术">
+
+        <button class="btn" id="genBtn" onclick="generateCode()">生成专属编码</button>
 
         <div class="code-display" id="codeDisplay">
             ✅ 您的专属实验编码：<span id="userCode"></span>
-            <p style="margin-top:8px;font-size:14px;color:#666;font-weight:normal;">生成成功！请点击下方链接依次完成问卷填写</p>
+            <p style="margin-top:8px;font-size:14px;color:#666;font-weight:normal;">生成成功！请点击下方链接依次完成任务</p>
         </div>
 
         <div class="link-section" id="linkSection">
-            <p>请依次完成以下三份问卷：</p>
-            <a href="MOS.html" target="_blank" class="link-btn" id="link3">平均主观意见得分问卷（Mean Opinion Score Questionnaire）</a>
-            <a href="Godspeed.html" target="_blank" class="link-btn" id="link1">机器人整体感知评价问卷（Godspeed Questionnaire）</a>
-            <a href="Mind.html" target="_blank" class="link-btn" id="link2">机器人心智感知评价问卷（Mind Perception Questionnaire）</a>
+            <p>请依次完成以下四份机器人动作任务：</p>
+            <a href="action1.html" class="link-btn" id="link1">🤖 机器人动作一</a>
+            <a href="action2.html" class="link-btn" id="link2">🤖 机器人动作二</a>
+            <a href="action3.html" class="link-btn" id="link3">🤖 机器人动作三</a>
+            <a href="action4.html" class="link-btn" id="link4">🤖 机器人动作四</a>
         </div>
     </div>
 
     <script>
-        let userUniqueCode = localStorage.getItem("user3Code") || "";
-
-        // 页面加载时，自动检查是否已有编码
         window.onload = function(){
-            if(userUniqueCode){
-                showLinks(userUniqueCode);
-            }
-            // 每次打开首页都刷新已完成状态
-            checkCompletedSurveys();
-        }
+            loadUserData();
+            checkCompletedActions();
+        };
 
-        function generateCode() {
-            const val = document.getElementById('phoneLast4').value.trim();
-            if (!/^\d{4}$/.test(val)) {
-                alert("请输入正确的4位数字！");
-                return;
-            }
-            let num = parseInt(val) * 8963 % 17576;
-            let code = "";
-            for(let i = 0; i < 3; i++){
-                code += String.fromCharCode(65 + num % 26);
-                num = Math.floor(num / 26);
-            }
-            userUniqueCode = code;
-            localStorage.setItem("user3Code", code);
+        function loadUserData(){
+            const code = localStorage.getItem("user3Code");
+            const phone = localStorage.getItem("userPhone4");
+            const age = localStorage.getItem("userAge");
+            const gender = localStorage.getItem("userGender");
+            const grade = localStorage.getItem("userGrade");
+            const major = localStorage.getItem("userMajor");
 
-            document.getElementById("userCode").innerText = userUniqueCode;
-            document.getElementById("codeDisplay").style.display = "block";
-            document.getElementById("linkSection").style.display = "block";
-            document.getElementById("inputWrap").style.display = "none";
+            if(!code) return;
 
-            checkCompletedSurveys();
-        }
+            document.getElementById("phoneLast4").value = phone || "";
+            document.getElementById("age").value = age || "";
+            document.getElementById("gender").value = gender || "";
+            document.getElementById("grade").value = grade || "";
+            document.getElementById("major").value = major || "";
 
-        function showLinks(code){
+            document.getElementById("phoneLast4").disabled = true;
+            document.getElementById("age").disabled = true;
+            document.getElementById("gender").disabled = true;
+            document.getElementById("grade").disabled = true;
+            document.getElementById("major").disabled = true;
+            document.getElementById("genBtn").disabled = true;
+            document.getElementById("genBtn").innerText = "已生成专属编码";
+
             document.getElementById("userCode").innerText = code;
             document.getElementById("codeDisplay").style.display = "block";
             document.getElementById("linkSection").style.display = "block";
-            document.getElementById("inputWrap").style.display = "none";
         }
 
-        // 检查哪些问卷已经填过了，置灰链接
-        function checkCompletedSurveys(){
-            const done = JSON.parse(localStorage.getItem("completedSurveys") || "[]");
-            if(done.includes("Godspeed")){
-                document.getElementById("link1").classList.add("disabled");
+        function generateCode() {
+            const phone = document.getElementById('phoneLast4').value.trim();
+            const age = document.getElementById('age').value.trim();
+            const gender = document.getElementById('gender').value;
+            const grade = document.getElementById('grade').value.trim();
+            const major = document.getElementById('major').value.trim();
+
+            if (!/^\d{4}$/.test(phone)) {
+                alert("请输入正确的4位数字！");
+                return;
             }
-            if(done.includes("Mind")){
-                document.getElementById("link2").classList.add("disabled");
+            if(!age || !gender || !grade || !major){
+                alert("请填写完整信息！");
+                return;
             }
-            if(done.includes("MOS")){
-                document.getElementById("link3").classList.add("disabled");
+
+            const str = phone + age + gender + grade + major;
+            let hash = 0;
+            for(let i=0;i<str.length;i++){
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0;
             }
+            const num = Math.abs(hash) % 17576;
+
+            let code = "";
+            let n = num;
+            for(let i=0;i<3;i++){
+                code += String.fromCharCode(65 + n % 26);
+                n = Math.floor(n / 26);
+            }
+
+            localStorage.setItem("user3Code", code);
+            localStorage.setItem("userPhone4", phone);
+            localStorage.setItem("userAge", age);
+            localStorage.setItem("userGender", gender);
+            localStorage.setItem("userGrade", grade);
+            localStorage.setItem("userMajor", major);
+            localStorage.removeItem("completedActions");
+
+            fetch('/initUser', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({
+                    userCode:code,
+                    age:age,
+                    gender:gender,
+                    grade:grade,
+                    major:major
+                })
+            });
+
+            loadUserData();
+        }
+
+        function checkCompletedActions(){
+            const done = JSON.parse(localStorage.getItem("completedActions") || "[]");
+            if(done.includes("action1")) document.getElementById("link1").classList.add("disabled");
+            if(done.includes("action2")) document.getElementById("link2").classList.add("disabled");
+            if(done.includes("action3")) document.getElementById("link3").classList.add("disabled");
+            if(done.includes("action4")) document.getElementById("link4").classList.add("disabled");
         }
     </script>
 </body>
