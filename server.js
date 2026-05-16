@@ -1,41 +1,92 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
+const https = require('https');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ===================== 数据持久化：从 result.json 读取 =====================
-const DATA_PATH = path.join(__dirname, 'results.json');
+// 从环境变量读取 GitHub 配置
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_USER = process.env.GITHUB_USER;
+const GITHUB_REPO = process.env.GITHUB_REPO;
+const FILE_PATH = 'results.json';
+
+// 全局缓存
 let DB = [];
+let fileSha = '';
 
-// 读取数据
-function loadDB() {
-  try {
-    if (fs.existsSync(DATA_PATH)) {
-      const content = fs.readFileSync(DATA_PATH, 'utf8');
-      DB = JSON.parse(content);
-    } else {
-      DB = [];
-    }
-  } catch (e) {
-    DB = [];
-  }
+// 从 GitHub 读取文件
+async function loadDB() {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.github.com',
+      path: `/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`,
+      method: 'GET',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'User-Agent': 'survey-app'
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        const data = JSON.parse(body);
+        fileSha = data.sha;
+        DB = JSON.parse(Buffer.from(data.content, 'base64').toString('utf8'));
+        resolve();
+      });
+    });
+    req.on('error', reject);
+    req.end();
+  });
 }
 
-// 保存数据
-function saveDB() {
-  try {
-    fs.writeFileSync(DATA_PATH, JSON.stringify(DB, null, 2), 'utf8');
-  } catch (e) {}
+// 写入 GitHub 文件
+async function saveDB() {
+  return new Promise((resolve, reject) => {
+    const content = Buffer.from(JSON.stringify(DB, null, 2)).toString('base64');
+    const data = JSON.stringify({
+      message: 'Update results.json',
+      content: content,
+      sha: fileSha
+    });
+
+    const options = {
+      hostname: 'api.github.com',
+      path: `/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`,
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'User-Agent': 'survey-app',
+        'Content-Type': 'application/json',
+        'Content-Length': data.length
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        const data = JSON.parse(body);
+        fileSha = data.content.sha;
+        resolve();
+      });
+    });
+    req.on('error', reject);
+    req.write(data);
+    req.end();
+  });
 }
 
-loadDB(); // 启动时加载
+// 启动时加载数据
+loadDB().catch(console.error);
 
-// ===================== 中间件 =====================
+// 中间件
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// ===================== 页面路由 =====================
+// 页面路由
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -45,34 +96,22 @@ app.get('/index.html', (req, res) => {
 app.get('/action1.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'action1.html'));
 });
-app.get('/MOS.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'MOS.html'));
-});
-app.get('/Godspeed.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'Godspeed.html'));
-});
-app.get('/Mind.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'Mind.html'));
-});
-
-// ===================== 视频 =====================
 app.get('/angry.mp4', (req, res) => {
   res.sendFile(path.join(__dirname, 'angry.mp4'));
 });
 
-// ===================== 用户信息提交 =====================
-app.post('/initUser', (req, res) => {
+// 用户建档
+app.post('/initUser', async (req, res) => {
   try {
     const { userCode, age, gender, grade, major } = req.body;
     const exist = DB.some(u => u.userCode === userCode && u.type === "base");
     if (!exist) {
-      const user = {
+      DB.push({
         userCode, age, gender, grade, major,
         type: "base",
         time: new Date().toLocaleString()
-      };
-      DB.push(user);
-      saveDB();
+      });
+      await saveDB();
     }
     res.json({ ok: true });
   } catch (e) {
@@ -80,25 +119,24 @@ app.post('/initUser', (req, res) => {
   }
 });
 
-// ===================== 问卷提交（自动保存到 result.json） =====================
-app.post('/submit', (req, res) => {
+// 提交问卷
+app.post('/submit', async (req, res) => {
   try {
-    const data = {
+    DB.push({
       ...req.body,
       saveTime: new Date().toLocaleString()
-    };
-    DB.push(data);
-    saveDB();
+    });
+    await saveDB();
     res.json({ status: "ok" });
   } catch (e) {
     res.json({ status: "ok" });
   }
 });
 
-// ===================== 后台显示（从 result.json 读取） =====================
-app.get('/admin', (req, res) => {
+// 后台页面
+app.get('/admin', async (req, res) => {
   try {
-    loadDB(); // 每次打开后台都重新读取文件，确保最新
+    await loadDB(); // 每次刷新后台都从 GitHub 读取最新数据
     const userMap = {};
 
     DB.forEach(item => {
@@ -145,19 +183,15 @@ app.get('/admin', (req, res) => {
         th{background:#2d8cf0;color:white}
         .yes{color:green;cursor:pointer}
         .no{color:#999}
-        .ans{
-          margin-top:10px;padding:12px;background:#f8f9fa;
-          border-radius:8px;text-align:left;white-space:pre-wrap;
-          display:none;font-size:14px
-        }
+        .ans{margin-top:10px;padding:12px;background:#f8f9fa;border-radius:8px;text-align:left;white-space:pre-wrap;display:none;font-size:14px}
       </style>
     </head>
     <body>
-      <h1>📋 受试者问卷详情（数据已保存到 result.json）</h1>
+      <h1>📋 受试者问卷详情（数据已保存到 GitHub）</h1>
     `;
 
-    const actions = ["action1","action2","action3","action4"];
-    const titles = ["动作一","动作二","动作三","动作四"];
+    const actions = ["action1", "action2", "action3", "action4"];
+    const titles = ["动作一", "动作二", "动作三", "动作四"];
 
     for (let code in userMap) {
       const u = userMap[code];
@@ -165,47 +199,28 @@ app.get('/admin', (req, res) => {
 
       html += `<div class="user">`;
       html += `<h3>受试者：${code}</h3>`;
-      html += `<div class="info">
-        年龄：${u.base.age} &nbsp;&nbsp; 性别：${u.base.gender}<br>
-        年级：${u.base.grade} &nbsp;&nbsp; 专业：${u.base.major}
-      </div>`;
+      html += `<div class="info">年龄：${u.base.age} &nbsp;&nbsp; 性别：${u.base.gender}<br>年级：${u.base.grade} &nbsp;&nbsp; 专业：${u.base.major}</div>`;
 
-      html += `<table>
-        <tr><th>动作</th><th>MOS 问卷</th><th>Godspeed 问卷</th><th>Mind 问卷</th></tr>`;
+      html += `<table><tr><th>动作</th><th>MOS 问卷</th><th>Godspeed 问卷</th><th>Mind 问卷</th></tr>`;
 
-      for (let i=0;i<4;i++) {
+      for (let i = 0; i < 4; i++) {
         const act = actions[i];
         const d = u[act];
         html += `<tr><td><strong>${titles[i]}</strong></td>`;
 
-        // MOS
         if (d.mos) {
           const ans = JSON.stringify(d.mos, null, 2);
-          html += `
-          <td>
-            <div class="yes" onclick="t('${code}-${act}-mos')">✅ 已完成</div>
-            <div class="ans" id="${code}-${act}-mos">${ans}</div>
-          </td>`;
+          html += `<td><div class="yes" onclick="t('${code}-${act}-mos')">✅ 已完成</div><div class="ans" id="${code}-${act}-mos">${ans}</div></td>`;
         } else html += `<td class="no">未完成</td>`;
 
-        // Godspeed
         if (d.god) {
           const ans = JSON.stringify(d.god, null, 2);
-          html += `
-          <td>
-            <div class="yes" onclick="t('${code}-${act}-god')">✅ 已完成</div>
-            <div class="ans" id="${code}-${act}-god">${ans}</div>
-          </td>`;
+          html += `<td><div class="yes" onclick="t('${code}-${act}-god')">✅ 已完成</div><div class="ans" id="${code}-${act}-god">${ans}</div></td>`;
         } else html += `<td class="no">未完成</td>`;
 
-        // Mind
         if (d.mind) {
           const ans = JSON.stringify(d.mind, null, 2);
-          html += `
-          <td>
-            <div class="yes" onclick="t('${code}-${act}-mind')">✅ 已完成</div>
-            <div class="ans" id="${code}-${act}-mind">${ans}</div>
-          </td>`;
+          html += `<td><div class="yes" onclick="t('${code}-${act}-mind')">✅ 已完成</div><div class="ans" id="${code}-${act}-mind">${ans}</div></td>`;
         } else html += `<td class="no">未完成</td>`;
 
         html += `</tr>`;
@@ -213,22 +228,13 @@ app.get('/admin', (req, res) => {
       html += `</table></div><hr>`;
     }
 
-    html += `
-    <script>
-      function t(id){
-        const e=document.getElementById(id);
-        e.style.display=e.style.display=='block'?'none':'block';
-      }
-    </script>
-    </body></html>`;
-
+    html += `<script>function t(id){const e=document.getElementById(id);e.style.display=e.style.display=='block'?'none':'block';}</script></body></html>`;
     res.send(html);
   } catch (err) {
     res.send("后台正常运行，暂无数据");
   }
 });
 
-// ===================== 启动服务 =====================
 app.listen(PORT, () => {
-  console.log("✅ 服务已启动 | 数据保存到 result.json");
+  console.log("✅ 服务已启动 | 数据将保存到 GitHub 的 results.json");
 });
