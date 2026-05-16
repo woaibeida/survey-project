@@ -183,13 +183,13 @@ app.post('/submit', (req, res) => {
   }
 });
 
-// ====================== 【修复版】后台（信息+数据都能正常显示） ======================
+// ====================== 【修复版】后台（100%识别所有提交数据） ======================
 app.get('/admin', (req, res) => {
   try {
     const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
     const groups = {};
 
-    // 先收集用户基础信息
+    // 1. 先收集所有用户基础信息
     raw.forEach(item => {
       if (item.type === "base") {
         const code = item.userCode;
@@ -197,33 +197,46 @@ app.get('/admin', (req, res) => {
           groups[code] = {
             base: { age: item.age, gender: item.gender, grade: item.grade, major: item.major },
             actions: {
-              action1: { MOS: null, Godspeed: null, Mind: null },
-              action2: { MOS: null, Godspeed: null, Mind: null },
-              action3: { MOS: null, Godspeed: null, Mind: null },
-              action4: { MOS: null, Godspeed: null, Mind: null }
+              action1: { MOS: false, Godspeed: false, Mind: false },
+              action2: { MOS: false, Godspeed: false, Mind: false },
+              action3: { MOS: false, Godspeed: false, Mind: false },
+              action4: { MOS: false, Godspeed: false, Mind: false }
             }
           };
         }
       }
     });
 
-    // 再收集问卷数据
+    // 2. 识别所有问卷数据（不依赖type字段，靠数据特征判断）
     raw.forEach(item => {
-      if (!item.action || !item.userCode) return;
+      if (!item.userCode || !item.action) return;
       const code = item.userCode;
       const ac = item.action;
 
-      if (!groups[code]) return;
+      // 如果用户还没初始化过，也创建一个分组（兼容直接提交问卷的情况）
+      if (!groups[code]) {
+        groups[code] = {
+          base: { age: "未填写", gender: "未填写", grade: "未填写", major: "未填写" },
+          actions: {
+            action1: { MOS: false, Godspeed: false, Mind: false },
+            action2: { MOS: false, Godspeed: false, Mind: false },
+            action3: { MOS: false, Godspeed: false, Mind: false },
+            action4: { MOS: false, Godspeed: false, Mind: false }
+          }
+        };
+      }
 
-      if (item.type?.includes('MOS') || item.type?.includes('三合一')) {
-        groups[code].actions[ac].MOS = true;
-      }
-      if (item.type?.includes('Godspeed') || item.type?.includes('三合一')) {
-        groups[code].actions[ac].Godspeed = true;
-      }
-      if (item.type?.includes('Mind') || item.type?.includes('三合一')) {
-        groups[code].actions[ac].Mind = true;
-      }
+      // 识别MOS问卷（数据里有mos开头的key）
+      const hasMOS = Object.keys(item).some(k => k.startsWith('mos'));
+      if (hasMOS) groups[code].actions[ac].MOS = true;
+
+      // 识别Godspeed问卷（数据里有god开头的key）
+      const hasGodspeed = Object.keys(item).some(k => k.startsWith('god'));
+      if (hasGodspeed) groups[code].actions[ac].Godspeed = true;
+
+      // 识别Mind问卷（数据里有mind开头的key）
+      const hasMind = Object.keys(item).some(k => k.startsWith('mind'));
+      if (hasMind) groups[code].actions[ac].Mind = true;
     });
 
     // 美化的后台页面
@@ -244,7 +257,7 @@ app.get('/admin', (req, res) => {
         table{width:100%;border-collapse:collapse;margin-bottom:15px}
         th,td{border:1px solid #ddd;padding:10px;text-align:center}
         th{background:#2d8cf0;color:white}
-        .done{color:#00b42a}
+        .done{color:#00b42a;font-weight:bold}
         .undone{color:#ff4d4f}
         .delBtn{background:#ff4d4f;color:white;padding:8px 14px;border:none;border-radius:6px;cursor:pointer}
       </style>
@@ -324,67 +337,66 @@ app.get('/export', (req, res) => {
     raw.forEach(item => {
       if (!item.action) return;
       const code = item.userCode || '未知';
-      const base = userBase[code] || {};
+      const base = userBase[code] || { age: "未填写", gender: "未填写", grade: "未填写", major: "未填写" };
       const actionLabel = actionName[item.action] || '未知动作';
 
-      if (item.type?.includes('MOS') || item.type?.includes('三合一')) {
-        for (let key in item) {
-          if (key.startsWith('mos')) {
-            const qNum = key.replace('mos', '');
-            excelData.push({
-              '受试者编码': code,
-              '年龄': base.age,
-              '性别': base.gender,
-              '年级': base.grade,
-              '专业': base.major,
-              '动作': actionLabel,
-              '问卷': 'MOS',
-              '题号': 'MOS' + qNum,
-              '题目': questionMap.MOS['q' + qNum] || '题目' + qNum,
-              '答案': item[key],
-              '时间': item.serverTime
-            });
-          }
+      // 导出MOS数据
+      for (let key in item) {
+        if (key.startsWith('mos')) {
+          const qNum = key.replace('mos', '');
+          excelData.push({
+            '受试者编码': code,
+            '年龄': base.age,
+            '性别': base.gender,
+            '年级': base.grade,
+            '专业': base.major,
+            '动作': actionLabel,
+            '问卷': 'MOS',
+            '题号': 'MOS' + qNum,
+            '题目': questionMap.MOS['q' + qNum] || '题目' + qNum,
+            '答案': item[key],
+            '时间': item.serverTime
+          });
         }
       }
-      if (item.type?.includes('Godspeed') || item.type?.includes('三合一')) {
-        for (let key in item) {
-          if (key.startsWith('god')) {
-            const qNum = key.replace('god', '');
-            excelData.push({
-              '受试者编码': code,
-              '年龄': base.age,
-              '性别': base.gender,
-              '年级': base.grade,
-              '专业': base.major,
-              '动作': actionLabel,
-              '问卷': 'Godspeed',
-              '题号': 'Godspeed' + qNum,
-              '题目': questionMap.Godspeed['q' + qNum] || '题目' + qNum,
-              '答案': item[key],
-              '时间': item.serverTime
-            });
-          }
+
+      // 导出Godspeed数据
+      for (let key in item) {
+        if (key.startsWith('god')) {
+          const qNum = key.replace('god', '');
+          excelData.push({
+            '受试者编码': code,
+            '年龄': base.age,
+            '性别': base.gender,
+            '年级': base.grade,
+            '专业': base.major,
+            '动作': actionLabel,
+            '问卷': 'Godspeed',
+            '题号': 'Godspeed' + qNum,
+            '题目': questionMap.Godspeed['q' + qNum] || '题目' + qNum,
+            '答案': item[key],
+            '时间': item.serverTime
+          });
         }
       }
-      if (item.type?.includes('Mind') || item.type?.includes('三合一')) {
-        for (let key in item) {
-          if (key.startsWith('mind')) {
-            const qNum = key.replace('mind', '');
-            excelData.push({
-              '受试者编码': code,
-              '年龄': base.age,
-              '性别': base.gender,
-              '年级': base.grade,
-              '专业': base.major,
-              '动作': actionLabel,
-              '问卷': 'Mind',
-              '题号': 'Mind' + qNum,
-              '题目': questionMap.Mind['q' + qNum] || '题目' + qNum,
-              '答案': item[key],
-              '时间': item.serverTime
-            });
-          }
+
+      // 导出Mind数据
+      for (let key in item) {
+        if (key.startsWith('mind')) {
+          const qNum = key.replace('mind', '');
+          excelData.push({
+            '受试者编码': code,
+            '年龄': base.age,
+            '性别': base.gender,
+            '年级': base.grade,
+            '专业': base.major,
+            '动作': actionLabel,
+            '问卷': 'Mind',
+            '题号': 'Mind' + qNum,
+            '题目': questionMap.Mind['q' + qNum] || '题目' + qNum,
+            '答案': item[key],
+            '时间': item.serverTime
+          });
         }
       }
     });
