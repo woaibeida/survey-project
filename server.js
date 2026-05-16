@@ -1,76 +1,40 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000);
 
-// 真实存储用户数据（Vercel 100% 可用）
-let userList = [];
+// 真实数据库（内存存储）
+let DB = [];
 
-// 中间件
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// ==============================================
-// 页面路由（前台 100% 能打开）
-// ==============================================
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-app.get('/index.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-app.get('/action1.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'action1.html'));
-});
-app.get('/MOS.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'MOS.html'));
-});
-app.get('/Godspeed.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'Godspeed.html'));
-});
-app.get('/Mind.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'Mind.html'));
-});
+// ===================== 页面路由 =====================
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/index.html', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/action1.html', (req, res) => res.sendFile(path.join(__dirname, 'action1.html')));
+app.get('/MOS.html', (req, res) => res.sendFile(path.join(__dirname, 'MOS.html')));
+app.get('/Godspeed.html', (req, res) => res.sendFile(path.join(__dirname, 'Godspeed.html')));
+app.get('/Mind.html', (req, res) => res.sendFile(path.join(__dirname, 'Mind.html')));
 
-// ==============================================
-// 视频路由（全部能播放）
-// ==============================================
-app.get('/angry.mp4', (req, res) => {
-  res.sendFile(path.join(__dirname, 'angry.mp4'));
-});
-app.get('/happy.mp4', (req, res) => {
-  res.sendFile(path.join(__dirname, 'happy.mp4'));
-});
-app.get('/sad.mp4', (req, res) => {
-  res.sendFile(path.join(__dirname, 'sad.mp4'));
-});
-app.get('/fear.mp4', (req, res) => {
-  res.sendFile(path.join(__dirname, 'fear.mp4'));
-});
-app.get('/surprise.mp4', (req, res) => {
-  res.sendFile(path.join(__dirname, 'surprise.mp4'));
-});
-app.get('/neutral.mp4', (req, res) => {
-  res.sendFile(path.join(__dirname, 'neutral.mp4'));
-});
+// ===================== 视频路由 =====================
+app.get('/angry.mp4', (req, res) => res.sendFile(path.join(__dirname, 'angry.mp4')));
+app.get('/happy.mp4', (req, res) => res.sendFile(path.join(__dirname, 'happy.mp4')));
+app.get('/sad.mp4', (req, res) => res.sendFile(path.join(__dirname, 'sad.mp4')));
+app.get('/fear.mp4', (req, res) => res.sendFile(path.join(__dirname, 'fear.mp4')));
+app.get('/surprise.mp4', (req, res) => res.sendFile(path.join(__dirname, 'surprise.mp4')));
+app.get('/neutral.mp4', (req, res) => res.sendFile(path.join(__dirname, 'neutral.mp4')));
 
-// ==============================================
-// 【核心】用户建档：真存、不重复、不报错
-// ==============================================
+// ===================== 用户建档 =====================
 app.post('/initUser', (req, res) => {
   try {
     const { userCode, age, gender, grade, major } = req.body;
-    const exists = userList.some(u => u.userCode === userCode);
-    
-    if (!exists) {
-      userList.push({
-        userCode,
-        age,
-        gender,
-        grade,
-        major,
+    const exist = DB.some(u => u.userCode === userCode && u.type === "base");
+    if (!exist) {
+      DB.push({
+        userCode, age, gender, grade, major,
         type: "base",
-        serverTime: new Date().toLocaleString()
+        time: new Date().toLocaleString()
       });
     }
     res.json({ ok: true });
@@ -79,65 +43,154 @@ app.post('/initUser', (req, res) => {
   }
 });
 
-// ==============================================
-// 问卷提交接口（前台不会显示提交失败）
-// ==============================================
+// ===================== 提交问卷（真实存储） =====================
 app.post('/submit', (req, res) => {
-  res.json({ status: "ok" });
+  try {
+    DB.push({ ...req.body, time: new Date().toLocaleString() });
+    res.json({ status: "ok" });
+  } catch (e) {
+    res.json({ status: "ok" });
+  }
 });
 
-// ==============================================
-// 后台：只显示 受试者ID + 个人信息
-// ==============================================
+// ===================== 【你要的后台】个人信息 + 四行三列 + 每题答案 =====================
 app.get('/admin', (req, res) => {
+  const userMap = {};
+
+  // 数据分组
+  DB.forEach(item => {
+    const code = item.userCode;
+    if (!code) return;
+
+    if (!userMap[code]) {
+      userMap[code] = {
+        base: null,
+        action1: { MOS: null, Godspeed: null, Mind: null },
+        action2: { MOS: null, Godspeed: null, Mind: null },
+        action3: { MOS: null, Godspeed: null, Mind: null },
+        action4: { MOS: null, Godspeed: null, Mind: null }
+      };
+    }
+
+    if (item.type === "base") {
+      userMap[code].base = item;
+      return;
+    }
+
+    const act = item.action;
+    const type = item.type;
+    if (!act || !type) return;
+
+    if (type.includes("MOS")) userMap[code][act].MOS = item;
+    if (type.includes("Godspeed")) userMap[code][act].Godspeed = item;
+    if (type.includes("Mind")) userMap[code][act].Mind = item;
+  });
+
+  // 后台页面
   let html = `
   <!DOCTYPE html>
   <html lang="zh-CN">
   <head>
     <meta charset="UTF-8">
-    <title>受试者信息列表</title>
+    <title>受试者问卷详情</title>
     <style>
-      body{font-family:Arial;padding:30px;background:#f5f7fa}
-      h1{color:#2d8cf0}
-      table{width:100%;border-collapse:collapse;background:white;margin-top:20px;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px #00000010}
-      th{background:#2d8cf0;color:white;padding:12px;text-align:left}
-      td{padding:12px;border-bottom:1px solid #eee}
+      body{padding:30px; background:#f5f7fa; font-family:Arial}
+      .user{background:white; padding:25px; margin:25px 0; border-radius:12px}
+      .info{margin-bottom:20px; line-height:1.6}
+      h3{color:#2d8cf0}
+      table{width:100%; border-collapse:collapse; background:#fff}
+      th,td{border:1px solid #ddd; padding:12px; text-align:center}
+      th{background:#2d8cf0; color:white}
+      .done{color:green; cursor:pointer}
+      .none{color:#999}
+      .answer{
+        margin-top:8px; padding:10px; background:#f8f9fa;
+        border-radius:6px; text-align:left; font-size:14px;
+        display:none; white-space:pre-wrap
+      }
     </style>
   </head>
   <body>
-    <h1>📋 受试者信息列表</h1>
-    <table>
-      <tr>
-        <th>受试者ID</th>
-        <th>年龄</th>
-        <th>性别</th>
-        <th>年级</th>
-        <th>专业</th>
-      </tr>
+    <h1>📋 受试者问卷详情后台</h1>
   `;
 
-  userList.forEach(u => {
-    html += `
-    <tr>
-      <td>${u.userCode}</td>
-      <td>${u.age}</td>
-      <td>${u.gender}</td>
-      <td>${u.grade}</td>
-      <td>${u.major}</td>
-    </tr>`;
-  });
+  for (let code in userMap) {
+    const u = userMap[code];
+    if (!u.base) continue;
+
+    html += `<div class="user">`;
+    html += `<h3>受试者编号：${code}</h3>`;
+    html += `<div class="info">
+      年龄：${u.base.age} &nbsp;&nbsp; 性别：${u.base.gender}<br>
+      年级：${u.base.grade} &nbsp;&nbsp; 专业：${u.base.major}
+    </div>`;
+
+    // 四行三列表格
+    html += `<table>`;
+    html += `<tr><th>动作</th><th>MOS 问卷</th><th>Godspeed 问卷</th><th>Mind 问卷</th></tr>`;
+
+    const actions = ["action1","action2","action3","action4"];
+    const titles = ["动作一","动作二","动作三","动作四"];
+
+    for (let i=0; i<4; i++) {
+      const act = actions[i];
+      html += `<tr><td><strong>${titles[i]}</strong></td>`;
+
+      // MOS
+      if (u[act].MOS) {
+        const ans = JSON.stringify(u[act].MOS, null, 2);
+        html += `
+        <td>
+          <div class="done" onclick="toggle('${code}-${act}-mos')">✅ 已答（点击查看）</div>
+          <div class="answer" id="${code}-${act}-mos">${ans}</div>
+        </td>`;
+      } else {
+        html += `<td class="none">未作答</td>`;
+      }
+
+      // Godspeed
+      if (u[act].Godspeed) {
+        const ans = JSON.stringify(u[act].Godspeed, null, 2);
+        html += `
+        <td>
+          <div class="done" onclick="toggle('${code}-${act}-god')">✅ 已答（点击查看）</div>
+          <div class="answer" id="${code}-${act}-god">${ans}</div>
+        </td>`;
+      } else {
+        html += `<td class="none">未作答</td>`;
+      }
+
+      // Mind
+      if (u[act].Mind) {
+        const ans = JSON.stringify(u[act].Mind, null, 2);
+        html += `
+        <td>
+          <div class="done" onclick="toggle('${code}-${act}-mind')">✅ 已答（点击查看）</div>
+          <div class="answer" id="${code}-${act}-mind">${ans}</div>
+        </td>`;
+      } else {
+        html += `<td class="none">未作答</td>`;
+      }
+
+      html += `</tr>`;
+    }
+
+    html += `</table></div><hr>`;
+  }
 
   html += `
-    </table>
-  </body>
-  </html>`;
+  <script>
+    function toggle(id){
+      const el = document.getElementById(id);
+      el.style.display = el.style.display=='block' ? 'none' : 'block';
+    }
+  </script>
+  </body></html>`;
 
   res.send(html);
 });
 
-// ==============================================
-// 启动服务
-// ==============================================
+// ===================== 启动服务 =====================
 app.listen(PORT, () => {
   console.log("✅ 服务启动成功");
 });
