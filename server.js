@@ -42,7 +42,7 @@ app.get('/Mind_answer.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'Mind_answer.html'));
 });
 
-// ================= 视频路由（能播放！） =================
+// ================= 视频路由 =================
 app.get('/angry.mp4', (req, res) => {
   res.sendFile(path.join(__dirname, 'angry.mp4'));
 });
@@ -140,7 +140,7 @@ const actionName = {
   action4: "机器人动作四"
 };
 
-// ================= 接口 =================
+// ================= 核心接口（已修复） =================
 app.post('/initUser', (req, res) => {
   const { userCode, age, gender, grade, major } = req.body;
   let list = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
@@ -154,6 +154,22 @@ app.post('/initUser', (req, res) => {
     fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2));
   }
   res.send({ok:true});
+});
+
+// 修复后的提交接口（关键修复！）
+app.post('/submit', (req, res) => {
+  try {
+    const arr = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    arr.push({
+      ...req.body,
+      serverTime: new Date(Date.now() + 8*3600000).toLocaleString()
+    });
+    fs.writeFileSync(DATA_FILE, JSON.stringify(arr, null, 2));
+    res.send({status:'ok'});
+  } catch (err) {
+    console.error("提交失败:", err);
+    res.status(500).send({status:'error', msg:'提交失败，请重试'});
+  }
 });
 
 app.get('/admin', (req, res) => {
@@ -263,13 +279,6 @@ app.get('/delete', (req, res) => {
   const arr = JSON.parse(fs.readFileSync(DATA_FILE,'utf8')).filter(i=>i.userCode!==code);
   fs.writeFileSync(DATA_FILE,JSON.stringify(arr,null,2));
   res.redirect('/admin');
-});
-
-app.post('/submit', (req, res) => {
-  const arr = JSON.parse(fs.readFileSync(DATA_FILE,'utf8'));
-  arr.push({...req.body, serverTime:new Date(Date.now()+8*3600000).toLocaleString()});
-  fs.writeFileSync(DATA_FILE,JSON.stringify(arr,null,2));
-  res.send({status:'ok'});
 });
 
 // 启动服务
