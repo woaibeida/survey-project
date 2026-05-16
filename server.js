@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 const DATA_FILE = path.join(__dirname, 'results.json');
 
-// 确保文件存在
+// 确保数据文件存在
 if (!fs.existsSync(DATA_FILE)) {
   fs.writeFileSync(DATA_FILE, '[]');
 }
@@ -33,6 +33,15 @@ app.get('/Godspeed.html', (req, res) => {
 app.get('/Mind.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'Mind.html'));
 });
+app.get('/Godspeed_answer.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'Godspeed_answer.html'));
+});
+app.get('/MOS_answer.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'MOS_answer.html'));
+});
+app.get('/Mind_answer.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'Mind_answer.html'));
+});
 
 // ------------------- 视频路由 -------------------
 app.get('/angry.mp4', (req, res) => {
@@ -54,121 +63,124 @@ app.get('/neutral.mp4', (req, res) => {
   res.sendFile(path.join(__dirname, 'neutral.mp4'));
 });
 
-// ------------------- 用户信息 -------------------
+// ------------------- 初始化用户 -------------------
 app.post('/initUser', (req, res) => {
   try {
-    let d = JSON.parse(fs.readFileSync(DATA_FILE) || '[]');
-    d.push({ ...req.body, type: 'base' });
-    fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2));
+    let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
+    data.push({ ...req.body, type: 'base', serverTime: new Date().toLocaleString() });
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
   } catch (e) {}
-  res.json({ ok: 1 });
+  res.json({ ok: true });
 });
 
-// ------------------- 提交问卷（稳定版） -------------------
+// ------------------- 提交问卷 -------------------
 app.post('/submit', (req, res) => {
   try {
-    let d = JSON.parse(fs.readFileSync(DATA_FILE) || '[]');
-    d.push(req.body);
-    fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2));
+    let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
+    data.push({ ...req.body, serverTime: new Date().toLocaleString() });
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
   } catch (e) {}
   res.json({ status: 'ok' });
 });
 
-// ------------------- ✅ 后台：100% 能识别数据 -------------------
+// ------------------- 【后台：四行三列表格】 -------------------
 app.get('/admin', (req, res) => {
   try {
-    const raw = JSON.parse(fs.readFileSync(DATA_FILE) || '[]');
-    const userMap = {};
+    const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
+    const userData = {};
 
-    // 遍历所有数据，全部归类
+    // 全量解析所有提交，不依赖任何格式
     raw.forEach(item => {
-      const uid = item.userCode;
-      if (!uid) return;
+      const code = item.userCode;
+      if (!code) return;
 
-      if (!userMap[uid]) {
-        userMap[uid] = {
-          info: { age: '无', gender: '无', grade: '无', major: '无' },
-          action1: { mos: 0, god: 0, mind: 0 },
-          action2: { mos: 0, god: 0, mind: 0 },
-          action3: { mos: 0, god: 0, mind: 0 },
-          action4: { mos: 0, god: 0, mind: 0 },
+      if (!userData[code]) {
+        userData[code] = {
+          info: { age: "未填", gender: "未填", grade: "未填", major: "未填" },
+          action1: { MOS: 0, Godspeed: 0, Mind: 0 },
+          action2: { MOS: 0, Godspeed: 0, Mind: 0 },
+          action3: { MOS: 0, Godspeed: 0, Mind: 0 },
+          action4: { MOS: 0, Godspeed: 0, Mind: 0 }
         };
       }
 
       // 基础信息
-      if (item.age) userMap[uid].info = item;
+      if (item.age) userData[code].info = item;
 
-      // 动作 + 问卷识别（只要有字段就判定已完成）
+      // 识别动作
       const act = item.action;
-      if (!act) return;
+      if (!act || !userData[code][act]) return;
 
-      const hasMos = Object.keys(item).some(k => k.includes('mos'));
-      const hasGod = Object.keys(item).some(k => k.includes('god'));
-      const hasMind = Object.keys(item).some(k => k.includes('mind'));
-
-      if (hasMos) userMap[uid][act].mos = 1;
-      if (hasGod) userMap[uid][act].god = 1;
-      if (hasMind) userMap[uid][act].mind = 1;
+      // 识别问卷
+      const keys = Object.keys(item);
+      if (keys.some(k => k.startsWith('mos'))) userData[code][act].MOS = 1;
+      if (keys.some(k => k.startsWith('god'))) userData[code][act].Godspeed = 1;
+      if (keys.some(k => k.startsWith('mind'))) userData[code][act].Mind = 1;
     });
 
-    // 输出页面：四行三列
     let html = `
     <!DOCTYPE html>
-    <html>
+    <html lang="zh-CN">
     <head>
-    <meta charset="utf-8">
-    <title>问卷后台</title>
-    <style>
-    body{padding:30px;background:#f4f7fa;font-family:Arial}
-    .user{background:white;padding:24px;margin:20px 0;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{border:1px solid #ddd;padding:12px;text-align:center}
-    th{background:#007bff;color:white}
-    .ok{color:#00b42a;font-weight:bold}
-    .no{color:#ff4d4f}
-    .btn{padding:10px 20px;background:#007bff;color:white;border:none;border-radius:6px;cursor:pointer}
-    </style>
+      <meta charset="UTF-8">
+      <title>问卷后台</title>
+      <style>
+        body{padding:25px;background:#f5f7fa;font-family:Arial}
+        .user-box{background:white;padding:22px;margin:20px 0;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+        table{width:100%;border-collapse:collapse;margin-top:12px}
+        th,td{border:1px solid #ddd;padding:12px;text-align:center}
+        th{background:#007bff;color:white}
+        .ok{color:#00b42a;font-weight:bold}
+        .no{color:#ff4d4f}
+        .btn{padding:10px 20px;background:#007bff;color:white;border:none;border-radius:6px;cursor:pointer}
+      </style>
     </head>
     <body>
-    <h1>📊 问卷完成情况</h1>
-    <button class="btn" onclick="location.href='/export'">导出 Excel</button><br><br>
+      <h1>📊 问卷完成情况</h1>
+      <button class="btn" onclick="location.href='/export'">导出 Excel</button><br><br>
     `;
 
-    for (let uid in userMap) {
-      const u = userMap[uid];
-      html += `<div class="user">`;
-      html += `<h3>编号：${uid}</h3>`;
-      html += `<p>年龄：${u.info.age} ｜ 性别：${u.info.gender} ｜ 年级：${u.info.grade} ｜ 专业：${u.info.major}</p>`;
-
+    for (let code in userData) {
+      const u = userData[code];
       html += `
-      <table>
-      <tr><th>动作</th><th>MOS</th><th>Godspeed</th><th>Mind</th></tr>
-      <tr>
-        <td>动作一</td>
-        <td class="${u.action1.mos?'ok':'no'}">${u.action1.mos?'✅ 完成':'❌ 未答'}</td>
-        <td class="${u.action1.god?'ok':'no'}">${u.action1.god?'✅ 完成':'❌ 未答'}</td>
-        <td class="${u.action1.mind?'ok':'no'}">${u.action1.mind?'✅ 完成':'❌ 未答'}</td>
-      </tr>
-      <tr>
-        <td>动作二</td>
-        <td class="${u.action2.mos?'ok':'no'}">${u.action2.mos?'✅ 完成':'❌ 未答'}</td>
-        <td class="${u.action2.god?'ok':'no'}">${u.action2.god?'✅ 完成':'❌ 未答'}</td>
-        <td class="${u.action2.mind?'ok':'no'}">${u.action2.mind?'✅ 完成':'❌ 未答'}</td>
-      </tr>
-      <tr>
-        <td>动作三</td>
-        <td class="${u.action3.mos?'ok':'no'}">${u.action3.mos?'✅ 完成':'❌ 未答'}</td>
-        <td class="${u.action3.god?'ok':'no'}">${u.action3.god?'✅ 完成':'❌ 未答'}</td>
-        <td class="${u.action3.mind?'ok':'no'}">${u.action3.mind?'✅ 完成':'❌ 未答'}</td>
-      </tr>
-      <tr>
-        <td>动作四</td>
-        <td class="${u.action4.mos?'ok':'no'}">${u.action4.mos?'✅ 完成':'❌ 未答'}</td>
-        <td class="${u.action4.god?'ok':'no'}">${u.action4.god?'✅ 完成':'❌ 未答'}</td>
-        <td class="${u.action4.mind?'ok':'no'}">${u.action4.mind?'✅ 完成':'❌ 未答'}</td>
-      </tr>
-      </table>
-      </div><hr>`;
+      <div class="user-box">
+        <h3>编号：${code}</h3>
+        <p>年龄：${u.info.age} ｜ 性别：${u.info.gender} ｜ 年级：${u.info.grade} ｜ 专业：${u.info.major}</p>
+        <table>
+          <tr>
+            <th>动作</th>
+            <th>MOS 问卷</th>
+            <th>Godspeed 问卷</th>
+            <th>Mind 问卷</th>
+          </tr>
+          <tr>
+            <td>机器人动作一</td>
+            <td class="${u.action1.MOS ? 'ok' : 'no'}">${u.action1.MOS ? '✅ 已完成' : '❌ 未答'}</td>
+            <td class="${u.action1.Godspeed ? 'ok' : 'no'}">${u.action1.Godspeed ? '✅ 已完成' : '❌ 未答'}</td>
+            <td class="${u.action1.Mind ? 'ok' : 'no'}">${u.action1.Mind ? '✅ 已完成' : '❌ 未答'}</td>
+          </tr>
+          <tr>
+            <td>机器人动作二</td>
+            <td class="${u.action2.MOS ? 'ok' : 'no'}">${u.action2.MOS ? '✅ 已完成' : '❌ 未答'}</td>
+            <td class="${u.action2.Godspeed ? 'ok' : 'no'}">${u.action2.Godspeed ? '✅ 已完成' : '❌ 未答'}</td>
+            <td class="${u.action2.Mind ? 'ok' : 'no'}">${u.action2.Mind ? '✅ 已完成' : '❌ 未答'}</td>
+          </tr>
+          <tr>
+            <td>机器人动作三</td>
+            <td class="${u.action3.MOS ? 'ok' : 'no'}">${u.action3.MOS ? '✅ 已完成' : '❌ 未答'}</td>
+            <td class="${u.action3.Godspeed ? 'ok' : 'no'}">${u.action3.Godspeed ? '✅ 已完成' : '❌ 未答'}</td>
+            <td class="${u.action3.Mind ? 'ok' : 'no'}">${u.action3.Mind ? '✅ 已完成' : '❌ 未答'}</td>
+          </tr>
+          <tr>
+            <td>机器人动作四</td>
+            <td class="${u.action4.MOS ? 'ok' : 'no'}">${u.action4.MOS ? '✅ 已完成' : '❌ 未答'}</td>
+            <td class="${u.action4.Godspeed ? 'ok' : 'no'}">${u.action4.Godspeed ? '✅ 已完成' : '❌ 未答'}</td>
+            <td class="${u.action4.Mind ? 'ok' : 'no'}">${u.action4.Mind ? '✅ 已完成' : '❌ 未答'}</td>
+          </tr>
+        </table>
+      </div>
+      <hr>
+      `;
     }
 
     html += `</body></html>`;
@@ -178,23 +190,23 @@ app.get('/admin', (req, res) => {
   }
 });
 
-// ------------------- 导出 -------------------
+// ------------------- 导出 Excel -------------------
 app.get('/export', (req, res) => {
   try {
-    const d = JSON.parse(fs.readFileSync(DATA_FILE) || '[]');
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(d);
-    XLSX.utils.book_append_sheet(wb, ws, "数据");
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, "问卷数据");
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename=data.xlsx');
+    res.setHeader('Content-Disposition', 'attachment; filename=survey_data.xlsx');
     res.send(buf);
   } catch (e) {
     res.send("导出失败");
   }
 });
 
-// ------------------- 启动 -------------------
-app.listen(PORT, () => {
+// ------------------- 启动服务 -------------------
+app.listen(PORT, '0.0.0.0', () => {
   console.log("服务已启动");
 });
