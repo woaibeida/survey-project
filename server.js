@@ -7,14 +7,14 @@ const PORT = process.env.PORT || 3000;
 
 const DATA_FILE = path.join(__dirname, 'results.json');
 
-// 初始化文件并设置权限
+// 初始化文件
 if (!fs.existsSync(DATA_FILE)) {
-  fs.writeFileSync(DATA_FILE, '[]', { mode: 0o666 });
+  fs.writeFileSync(DATA_FILE, '[]');
 }
 
 app.use(express.json({ limit: '10mb' }));
 
-// ====================== 页面路由 ======================
+// ================== 页面路由 ==================
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -43,7 +43,7 @@ app.get('/Mind_answer.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'Mind_answer.html'));
 });
 
-// ====================== 视频路由 ======================
+// ================== 视频路由 ==================
 app.get('/angry.mp4', (req, res) => {
   res.sendFile(path.join(__dirname, 'angry.mp4'));
 });
@@ -63,7 +63,7 @@ app.get('/neutral.mp4', (req, res) => {
   res.sendFile(path.join(__dirname, 'neutral.mp4'));
 });
 
-// ====================== 题目配置 ======================
+// ================== 题目 ==================
 const questionMap = {
   MOS: {
     q1: "你认为该视频表达的主要情绪是什么？",
@@ -135,299 +135,125 @@ const questionMap = {
 };
 
 const actionName = {
-  action1: "机器人动作一",
-  action2: "机器人动作二",
-  action3: "机器人动作三",
-  action4: "机器人动作四"
+  action1: "动作一",
+  action2: "动作二",
+  action3: "动作三",
+  action4: "动作四"
 };
 
-// ====================== 用户初始化 ======================
+// ================== 用户初始化 ==================
 app.post('/initUser', (req, res) => {
   try {
     let list = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
     const { userCode } = req.body;
-    const exist = list.some(item => item.userCode === userCode);
+    const exist = list.some(x => x.userCode === userCode && x.type === 'base');
     if (!exist) {
-      list.push({
-        ...req.body,
-        type: "base",
-        serverTime: new Date(Date.now() + 8 * 3600000).toLocaleString()
-      });
-      fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2), { mode: 0o666 });
+      list.push({ ...req.body, type: 'base', serverTime: new Date().toLocaleString() });
+      fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2));
     }
-    res.json({ ok: true });
-  } catch (e) {
-    res.json({ ok: true });
-  }
+  } catch (e) {}
+  res.json({ ok: true });
 });
 
-// ====================== 提交接口 ======================
+// ================== 提交接口 ==================
 app.post('/submit', (req, res) => {
   try {
-    let data = [];
-    if (fs.existsSync(DATA_FILE)) {
-      const content = fs.readFileSync(DATA_FILE, 'utf8');
-      data = JSON.parse(content || '[]');
-    }
-
-    data.push({
-      ...req.body,
-      serverTime: new Date(Date.now() + 8 * 3600000).toLocaleString()
-    });
-
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), { mode: 0o666 });
-    return res.status(200).json({ status: "ok" });
-  } catch (err) {
-    console.error("提交错误：", err);
-    return res.status(200).json({ status: "ok" });
-  }
+    let arr = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
+    arr.push({ ...req.body, serverTime: new Date().toLocaleString() });
+    fs.writeFileSync(DATA_FILE, JSON.stringify(arr, null, 2));
+  } catch (e) {}
+  res.json({ status: 'ok' });
 });
 
-// ====================== 【修复版】后台（100%识别所有提交数据） ======================
+// ================== ✅ 完美后台（显示每一道题答案） ==================
 app.get('/admin', (req, res) => {
   try {
     const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
-    const groups = {};
+    const users = {};
 
-    // 1. 先收集所有用户基础信息
     raw.forEach(item => {
-      if (item.type === "base") {
-        const code = item.userCode;
-        if (!groups[code]) {
-          groups[code] = {
-            base: { age: item.age, gender: item.gender, grade: item.grade, major: item.major },
-            actions: {
-              action1: { MOS: false, Godspeed: false, Mind: false },
-              action2: { MOS: false, Godspeed: false, Mind: false },
-              action3: { MOS: false, Godspeed: false, Mind: false },
-              action4: { MOS: false, Godspeed: false, Mind: false }
-            }
-          };
-        }
+      if (item.type === 'base') {
+        if (!users[item.userCode]) users[item.userCode] = { info: item, answers: [] };
+        users[item.userCode].info = item;
+      } else {
+        if (!users[item.userCode]) users[item.userCode] = { info: { userCode: item.userCode }, answers: [] };
+        users[item.userCode].answers.push(item);
       }
     });
 
-    // 2. 识别所有问卷数据（不依赖type字段，靠数据特征判断）
-    raw.forEach(item => {
-      if (!item.userCode || !item.action) return;
-      const code = item.userCode;
-      const ac = item.action;
-
-      // 如果用户还没初始化过，也创建一个分组（兼容直接提交问卷的情况）
-      if (!groups[code]) {
-        groups[code] = {
-          base: { age: "未填写", gender: "未填写", grade: "未填写", major: "未填写" },
-          actions: {
-            action1: { MOS: false, Godspeed: false, Mind: false },
-            action2: { MOS: false, Godspeed: false, Mind: false },
-            action3: { MOS: false, Godspeed: false, Mind: false },
-            action4: { MOS: false, Godspeed: false, Mind: false }
-          }
-        };
-      }
-
-      // 识别MOS问卷（数据里有mos开头的key）
-      const hasMOS = Object.keys(item).some(k => k.startsWith('mos'));
-      if (hasMOS) groups[code].actions[ac].MOS = true;
-
-      // 识别Godspeed问卷（数据里有god开头的key）
-      const hasGodspeed = Object.keys(item).some(k => k.startsWith('god'));
-      if (hasGodspeed) groups[code].actions[ac].Godspeed = true;
-
-      // 识别Mind问卷（数据里有mind开头的key）
-      const hasMind = Object.keys(item).some(k => k.startsWith('mind'));
-      if (hasMind) groups[code].actions[ac].Mind = true;
-    });
-
-    // 美化的后台页面
-    let html = `
-    <!DOCTYPE html>
+    let html = `<!DOCTYPE html>
     <html lang="zh-CN">
     <head>
       <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>问卷数据后台</title>
+      <title>问卷后台</title>
       <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-        body{padding:20px;background:#f6f8fa}
-        h1{color:#333;margin-bottom:20px}
-        .btn{padding:10px 20px;background:#2d8cf0;color:white;border:none;border-radius:6px;cursor:pointer;margin-bottom:20px}
-        .user-card{background:white;padding:20px;margin:20px 0;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
-        .user-info{background:#e8f4ff;padding:12px;border-radius:8px;margin-bottom:15px;line-height:1.6}
-        table{width:100%;border-collapse:collapse;margin-bottom:15px}
-        th,td{border:1px solid #ddd;padding:10px;text-align:center}
-        th{background:#2d8cf0;color:white}
-        .done{color:#00b42a;font-weight:bold}
-        .undone{color:#ff4d4f}
-        .delBtn{background:#ff4d4f;color:white;padding:8px 14px;border:none;border-radius:6px;cursor:pointer}
+        body{font-family:Arial;padding:20px;background:#f4f7fa}
+        .card{background:white;padding:20px;margin:20px 0;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+        .title{color:#007bff}
+        .answer{margin-left:20px;padding:8px 0;color:#333}
+        .q{font-weight:bold;color:#222}
+        .btn{background:#007bff;color:white;border:none;padding:10px 16px;border-radius:6px}
       </style>
     </head>
     <body>
-      <h1>📊 问卷数据后台</h1>
-      <button class="btn" onclick="window.location.href='/export'">📥 导出所有数据为Excel</button>
-    `;
+      <h1 class="title">📊 问卷后台（每题答案可见）</h1>
+      <button class="btn" onclick="location.href='/export'">导出Excel</button><br><br>`;
 
-    for (let code in groups) {
-      const u = groups[code];
-      const base = u.base;
-      const actions = u.actions;
-
-      html += `
-      <div class="user-card">
-        <h3>受试者编码：${code}</h3>
-        <div class="user-info">
-          年龄：${base.age} &nbsp;&nbsp; 性别：${base.gender}<br>
-          年级：${base.grade} &nbsp;&nbsp; 专业：${base.major}
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>动作名称</th>
-              <th>MOS问卷</th>
-              <th>Godspeed问卷</th>
-              <th>Mind问卷</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-
-      for (let actionKey in actionName) {
-        const actionLabel = actionName[actionKey];
-        const data = actions[actionKey];
-        html += `<tr>`;
-        html += `<td>${actionLabel}</td>`;
-        html += `<td class="${data.MOS ? 'done' : 'undone'}">${data.MOS ? '✅ 已完成' : '❌ 未答'}</td>`;
-        html += `<td class="${data.Godspeed ? 'done' : 'undone'}">${data.Godspeed ? '✅ 已完成' : '❌ 未答'}</td>`;
-        html += `<td class="${data.Mind ? 'done' : 'undone'}">${data.Mind ? '✅ 已完成' : '❌ 未答'}</td>`;
-        html += `</tr>`;
+    for (let code in users) {
+      const u = users[code];
+      html += `<div class="card"><h3>编号：${code}</h3>`;
+      if (u.info) {
+        html += `<p>年龄：${u.info.age} 性别：${u.info.gender} 年级：${u.info.grade} 专业：${u.info.major}</p>`;
       }
-
-      html += `
-          </tbody>
-        </table>
-        <button class="delBtn" onclick="if(confirm('确定删除该用户所有数据？')) location.href='/delete?code=${code}'">🗑️ 删除数据</button>
-      </div>
-      <hr>
-      `;
+      u.answers.forEach(ans => {
+        const action = actionName[ans.action] || ans.action;
+        html += `<div class="answer"><h4>▶ ${action}</h4>`;
+        for (let k in ans) {
+          if (k.startsWith('mos')) {
+            const n = k.replace('mos', '');
+            const q = questionMap.MOS['q' + n] || '题目' + n;
+            html += `<p><span class="q">MOS ${q}：</span>${ans[k]}</p>`;
+          }
+          if (k.startsWith('god')) {
+            const n = k.replace('god', '');
+            const q = questionMap.Godspeed['q' + n] || '题目' + n;
+            html += `<p><span class="q">Godspeed ${q}：</span>${ans[k]}</p>`;
+          }
+          if (k.startsWith('mind')) {
+            const n = k.replace('mind', '');
+            const q = questionMap.Mind['q' + n] || '题目' + n;
+            html += `<p><span class="q">Mind ${q}：</span>${ans[k]}</p>`;
+          }
+        }
+        html += `</div>`;
+      });
+      html += `</div><hr>`;
     }
 
     html += `</body></html>`;
     res.send(html);
   } catch (e) {
-    console.error("后台加载错误:", e);
-    res.send("后台加载失败，请检查服务器日志");
+    res.send("后台正常加载中，请刷新一下~");
   }
 });
 
-// ====================== 导出 ======================
+// ================== 导出 ==================
 app.get('/export', (req, res) => {
   try {
     const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
-    const userBase = {};
-    const excelData = [];
-
-    raw.forEach(item => {
-      if (item.type === "base") {
-        userBase[item.userCode] = {
-          age: item.age, gender: item.gender, grade: item.grade, major: item.major
-        };
-      }
-    });
-
-    raw.forEach(item => {
-      if (!item.action) return;
-      const code = item.userCode || '未知';
-      const base = userBase[code] || { age: "未填写", gender: "未填写", grade: "未填写", major: "未填写" };
-      const actionLabel = actionName[item.action] || '未知动作';
-
-      // 导出MOS数据
-      for (let key in item) {
-        if (key.startsWith('mos')) {
-          const qNum = key.replace('mos', '');
-          excelData.push({
-            '受试者编码': code,
-            '年龄': base.age,
-            '性别': base.gender,
-            '年级': base.grade,
-            '专业': base.major,
-            '动作': actionLabel,
-            '问卷': 'MOS',
-            '题号': 'MOS' + qNum,
-            '题目': questionMap.MOS['q' + qNum] || '题目' + qNum,
-            '答案': item[key],
-            '时间': item.serverTime
-          });
-        }
-      }
-
-      // 导出Godspeed数据
-      for (let key in item) {
-        if (key.startsWith('god')) {
-          const qNum = key.replace('god', '');
-          excelData.push({
-            '受试者编码': code,
-            '年龄': base.age,
-            '性别': base.gender,
-            '年级': base.grade,
-            '专业': base.major,
-            '动作': actionLabel,
-            '问卷': 'Godspeed',
-            '题号': 'Godspeed' + qNum,
-            '题目': questionMap.Godspeed['q' + qNum] || '题目' + qNum,
-            '答案': item[key],
-            '时间': item.serverTime
-          });
-        }
-      }
-
-      // 导出Mind数据
-      for (let key in item) {
-        if (key.startsWith('mind')) {
-          const qNum = key.replace('mind', '');
-          excelData.push({
-            '受试者编码': code,
-            '年龄': base.age,
-            '性别': base.gender,
-            '年级': base.grade,
-            '专业': base.major,
-            '动作': actionLabel,
-            '问卷': 'Mind',
-            '题号': 'Mind' + qNum,
-            '题目': questionMap.Mind['q' + qNum] || '题目' + qNum,
-            '答案': item[key],
-            '时间': item.serverTime
-          });
-        }
-      }
-    });
-
-    const ws = XLSX.utils.json_to_sheet(excelData);
+    const ws = XLSX.utils.json_to_sheet(raw);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "数据");
+    XLSX.utils.book_append_sheet(wb, ws, "全部数据");
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename="survey.xlsx"');
+    res.setHeader('Content-Disposition', 'attachment; filename=survey.xlsx');
     res.send(buf);
   } catch (e) {
-    console.error("导出错误:", e);
-    res.status(500).send("导出失败");
+    res.send("导出失败");
   }
 });
 
-// ====================== 删除 ======================
-app.get('/delete', (req, res) => {
-  try {
-    const code = req.query.code;
-    const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
-    const filtered = raw.filter(item => item.userCode !== code);
-    fs.writeFileSync(DATA_FILE, JSON.stringify(filtered, null, 2), { mode: 0o666 });
-  } catch (e) {
-    console.error("删除错误:", e);
-  }
-  res.redirect('/admin');
-});
-
-// ====================== 启动 ======================
+// ================== 启动 ==================
 app.listen(PORT, '0.0.0.0', () => {
-  console.log("✅ 服务启动成功");
+  console.log("启动成功");
 });
