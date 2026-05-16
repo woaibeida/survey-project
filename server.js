@@ -12,11 +12,24 @@ if (!fs.existsSync(DATA_FILE)) {
 }
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '.')));
 
-// 根路由自动跳转到问卷首页（解决 Cannot GET /）
+// ==============================================
+// 【Vercel 专用路由：全部手动写死，绝对能访问】
+// ==============================================
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+app.get('/action1.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'action1.html'));
+});
+app.get('/MOS.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'MOS.html'));
+});
+app.get('/Godspeed.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'Godspeed.html'));
+});
+app.get('/Mind.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'Mind.html'));
 });
 
 // 题目内容映射
@@ -286,7 +299,7 @@ app.get('/admin', (req, res) => {
   res.send(html);
 });
 
-// ====================== 导出 Excel（修复版，不会崩溃）======================
+// 导出 Excel
 app.get('/export', (req, res) => {
   try {
     const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
@@ -306,7 +319,6 @@ app.get('/export', (req, res) => {
       const base = userBase[code] || {};
       const actionLabel = actionName[item.action] || '未知动作';
 
-      // MOS
       if(item.type?.includes('MOS') || item.type?.includes('三合一')){
         for(let key in item){
           if(key.startsWith('mos')){
@@ -328,7 +340,6 @@ app.get('/export', (req, res) => {
         }
       }
 
-      // Godspeed
       if(item.type?.includes('Godspeed') || item.type?.includes('三合一')){
         for(let key in item){
           if(key.startsWith('god')){
@@ -350,7 +361,6 @@ app.get('/export', (req, res) => {
         }
       }
 
-      // Mind
       if(item.type?.includes('Mind') || item.type?.includes('三合一')){
         for(let key in item){
           if(key.startsWith('mind')){
@@ -405,7 +415,7 @@ app.post('/submit', (req, res) => {
   res.send({ status: 'ok' });
 });
 
-// 监听 0.0.0.0 适配 Vercel
+// Vercel 专用启动，绝对不崩溃
 app.listen(PORT, '0.0.0.0', () => {
   console.log("✅ 服务启动成功");
 });
