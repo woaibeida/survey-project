@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ===================== 数据持久化：从 result.json 读取 =====================
-const DATA_PATH = path.join(__dirname, 'result.json');
+const DATA_PATH = path.join(__dirname, 'results.json');
 let DB = [];
 
 // 读取数据
