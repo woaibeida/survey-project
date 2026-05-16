@@ -13,6 +13,28 @@ if (!fs.existsSync(DATA_FILE)) {
 app.use(express.json());
 app.use(express.static(__dirname));
 
+// ===================== 【修复：页面路由全部加上】 =====================
+// 这就是你 Cannot GET 的根本原因！！！
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+app.get('/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+app.get('/action1.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'action1.html'));
+});
+app.get('/MOS.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'MOS.html'));
+});
+app.get('/Godspeed.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'Godspeed.html'));
+});
+app.get('/Mind.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'Mind.html'));
+});
+// ======================================================================
+
 // 受试者建档接口
 app.post('/initUser', (req, res) => {
   const { userCode, age, gender, grade, major } = req.body;
