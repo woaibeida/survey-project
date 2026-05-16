@@ -13,7 +13,7 @@ if (!fs.existsSync(DATA_FILE)) {
 
 app.use(express.json());
 
-// 【强制写死所有路由，Vercel绝对无法拦截】
+// ================= 页面路由 =================
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -42,7 +42,27 @@ app.get('/Mind_answer.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'Mind_answer.html'));
 });
 
-// 题目内容映射（不变）
+// ================= 视频路由（能播放！） =================
+app.get('/angry.mp4', (req, res) => {
+  res.sendFile(path.join(__dirname, 'angry.mp4'));
+});
+app.get('/happy.mp4', (req, res) => {
+  res.sendFile(path.join(__dirname, 'happy.mp4'));
+});
+app.get('/sad.mp4', (req, res) => {
+  res.sendFile(path.join(__dirname, 'sad.mp4'));
+});
+app.get('/fear.mp4', (req, res) => {
+  res.sendFile(path.join(__dirname, 'fear.mp4'));
+});
+app.get('/surprise.mp4', (req, res) => {
+  res.sendFile(path.join(__dirname, 'surprise.mp4'));
+});
+app.get('/neutral.mp4', (req, res) => {
+  res.sendFile(path.join(__dirname, 'neutral.mp4'));
+});
+
+// ================= 题目配置 =================
 const questionMap = {
   MOS: {
     q1: "你认为该视频表达的主要情绪是什么？",
@@ -113,7 +133,6 @@ const questionMap = {
   }
 };
 
-// 动作名称映射（不变）
 const actionName = {
   action1: "机器人动作一",
   action2: "机器人动作二",
@@ -121,13 +140,17 @@ const actionName = {
   action4: "机器人动作四"
 };
 
-// 其他接口（不变）
+// ================= 接口 =================
 app.post('/initUser', (req, res) => {
   const { userCode, age, gender, grade, major } = req.body;
   let list = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   const exist = list.some(item => item.userCode === userCode);
   if(!exist){
-    list.push({ userCode, age, gender, grade, major, type:"base", serverTime: new Date(Date.now() + 8*3600000).toLocaleString() });
+    list.push({
+      userCode, age, gender, grade, major,
+      type:"base",
+      serverTime: new Date(Date.now() + 8*3600000).toLocaleString()
+    });
     fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2));
   }
   res.send({ok:true});
@@ -139,7 +162,15 @@ app.get('/admin', (req, res) => {
   raw.forEach(item => {
     const code = item.userCode || '未知';
     if (!groups[code]) {
-      groups[code] = { base: { age: '', gender: '', grade: '', major: '' }, actions: { action1: { MOS: null, Godspeed: null, Mind: null }, action2: { MOS: null, Godspeed: null, Mind: null }, action3: { MOS: null, Godspeed: null, Mind: null }, action4: { MOS: null, Godspeed: null, Mind: null } } };
+      groups[code] = {
+        base: { age: '', gender: '', grade: '', major: '' },
+        actions: {
+          action1: { MOS: null, Godspeed: null, Mind: null },
+          action2: { MOS: null, Godspeed: null, Mind: null },
+          action3: { MOS: null, Godspeed: null, Mind: null },
+          action4: { MOS: null, Godspeed: null, Mind: null }
+        }
+      };
     }
     if(item.type === "base"){
       groups[code].base.age = item.age;
@@ -165,48 +196,83 @@ app.get('/admin', (req, res) => {
       }
     }
   });
-  let html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>问卷完整数据后台</title><style>*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}body{padding:20px;background:#f6f8fa}.user-card{background:white;padding:20px;margin:20px 0;border-radius:10px;box-shadow:0 1px 3px #00000015}h3{color:#2d8cf0;margin-bottom:15px}.user-info{background:#e8f4ff;padding:12px;border-radius:8px;margin-bottom:15px;line-height:1.6}.survey-table{width:100%;border-collapse:collapse;margin-bottom:15px}.survey-table th,.survey-table td{border:1px solid #ddd;padding:10px;text-align:center;vertical-align:top}.survey-table th{background:#2d8cf0;color:white;font-weight:600}.survey-table tr:nth-child(even){background:#f9f9f9}.cell-toggle{cursor:pointer}.cell-done{color:#00b42a;font-weight:500}.cell-none{color:#999}.detail-content{display:none;background:#f0f7ff;padding:12px;border-radius:6px;margin-top:8px;text-align:left;white-space:pre-wrap;font-size:13px}.detail-content.show{display:block}.delBtn{background:#ff4444;color:white;padding:8px 14px;border:none;border-radius:6px;cursor:pointer}</style></head><body><h1>📊 问卷完整数据后台</h1><button style="padding:10px 20px; background:#2d8cf0; color:white; border:none; border-radius:6px; cursor:pointer; margin-bottom:20px;" onclick="window.location.href='/export'">📥 导出所有作答数据为Excel</button>`;
-  for (let code in groups) {
-    const u = groups[code]; const base = u.base; const actions = u.actions;
-    html += `<div class="user-card"><h3>受试者编码：${code}</h3><div class="user-info">年龄：${base.age} &nbsp;&nbsp; 性别：${base.gender}<br>年级：${base.grade}<br>专业：${base.major}</div><table class="survey-table"><thead><tr><th style="width:20%">动作名称</th><th style="width:26.66%">MOS问卷</th><th style="width:26.66%">Godspeed问卷</th><th style="width:26.66%">Mind问卷</th></tr></thead><tbody>`;
-    for(let actionKey in actionName){
-      const actionLabel = actionName[actionKey]; const surveyData = actions[actionKey];
-      html += `<tr><td><strong>${actionLabel}</strong></td>`;
-      if(surveyData.MOS){ const s = JSON.stringify(surveyData.MOS, null, 2); html += `<td class="cell-toggle" onclick="toggleDetail('${code}-${actionKey}-mos')"><span class="cell-done">✅ 已完成</span><div class="detail-content" id="${code}-${actionKey}-mos">${s}</div></td>`; }else{ html += `<td class="cell-none">未答</td>`; }
-      if(surveyData.Godspeed){ const s = JSON.stringify(surveyData.Godspeed, null, 2); html += `<td class="cell-toggle" onclick="toggleDetail('${code}-${actionKey}-god')"><span class="cell-done">✅ 已完成</span><div class="detail-content" id="${code}-${actionKey}-god">${s}</div></td>`; }else{ html += `<td class="cell-none">未答</td>`; }
-      if(surveyData.Mind){ const s = JSON.stringify(surveyData.Mind, null, 2); html += `<td class="cell-toggle" onclick="toggleDetail('${code}-${actionKey}-mind')"><span class="cell-done">✅ 已完成</span><div class="detail-content" id="${code}-${actionKey}-mind">${s}</div></td>`; }else{ html += `<td class="cell-none">未答</td>`; }
-      html += `</tr>`;
+
+  let html = `<!DOCTYPE html><html lang="zh-CN"><head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>问卷数据后台</title><style>
+  *{margin:0;padding:0;box-sizing:border-box}body{padding:20px;background:#f6f8fa}
+  .user-card{background:#fff;padding:20px;margin:20px 0;border-radius:12px}
+  h3{color:#007bff;margin-bottom:12px}
+  .user-info{background:#eef7ff;padding:12px;border-radius:8px;margin-bottom:16px}
+  .survey-table{width:100%;border-collapse:collapse;margin-bottom:16px}
+  .survey-table th,.survey-table td{border:1px solid #ddd;padding:10px;text-align:center}
+  .survey-table th{background:#007bff;color:#fff}
+  .cell-done{color:#28a745}
+  .detail-content{display:none;background:#f0f7ff;padding:10px;margin-top:8px;border-radius:6px}
+  </style></head><body>
+  <h1>📊 问卷数据后台</h1>
+  <button onclick="location.href='/export'" style="padding:10px 20px;background:#007bff;color:#fff;border:none;border-radius:6px;margin:10px 0">导出 Excel</button>`;
+
+  for(let code in groups){
+    const u = groups[code];
+    html += `<div class="user-card"><h3>编号：${code}</h3><div class="user-info">年龄：${u.base.age} | 性别：${u.base.gender}<br>年级：${u.base.grade} | 专业：${u.base.major}</div><table class="survey-table"><tr><th>动作</th><th>MOS</th><th>Godspeed</th><th>Mind</th></tr>`;
+    for(let k in actionName){
+      const d = u.actions[k];
+      html += `<tr><td>${actionName[k]}</td>
+      <td>${d.MOS?'✅已完成':'未答'}</td>
+      <td>${d.Godspeed?'✅已完成':'未答'}</td>
+      <td>${d.Mind?'✅已完成':'未答'}</td></tr>`;
     }
-    html += `</tbody></table><button class="delBtn" onclick="del('${code}')">🗑️ 删除该受试者所有数据</button></div><hr>`;
+    html += `</table><button onclick="if(confirm('确定删除？'))location.href='/delete?code=${code}'" style="background:#dc3545;color:#fff;border:none;padding:8px 12px;border-radius:6px">删除该用户数据</button></div><hr>`;
   }
-  html += `<script>function toggleDetail(id){ document.getElementById(id).classList.toggle('show'); } function del(code){ if(!confirm('确定删除【'+code+'】所有数据？')) return; location.href='/delete?code='+code; }</script></body></html>`;
+  html += `</body></html>`;
   res.send(html);
 });
 
 app.get('/export', (req, res) => {
   try {
-    const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); const userBase = {}; const excelData = [];
-    raw.forEach(item => { if(item.type === "base"){ userBase[item.userCode] = { age: item.age, gender: item.gender, grade: item.grade, major: item.major }; } });
-    raw.forEach(item => {
-      const code = item.userCode || '未知'; const base = userBase[code] || {}; const actionLabel = actionName[item.action] || '未知动作';
-      if(item.type?.includes('MOS') || item.type?.includes('三合一')){ for(let key in item){ if(key.startsWith('mos')){ const qNum = key.replace('mos',''); excelData.push({ '受试者编码': code, '年龄': base.age, '性别': base.gender, '年级': base.grade, '专业': base.major, '动作': actionLabel, '问卷': 'MOS', '题号': 'MOS'+qNum, '题目': questionMap.MOS['q'+qNum] || '题目'+qNum, '答案': item[key], '时间': item.serverTime }); } } }
-      if(item.type?.includes('Godspeed') || item.type?.includes('三合一')){ for(let key in item){ if(key.startsWith('god')){ const qNum = key.replace('god',''); excelData.push({ '受试者编码': code, '年龄': base.age, '性别': base.gender, '年级': base.grade, '专业': base.major, '动作': actionLabel, '问卷': 'Godspeed', '题号': 'Godspeed'+qNum, '题目': questionMap.Godspeed['q'+qNum] || '题目'+qNum, '答案': item[key], '时间': item.serverTime }); } } }
-      if(item.type?.includes('Mind') || item.type?.includes('三合一')){ for(let key in item){ if(key.startsWith('mind')){ const qNum = key.replace('mind',''); excelData.push({ '受试者编码': code, '年龄': base.age, '性别': base.gender, '年级': base.grade, '专业': base.major, '动作': actionLabel, '问卷': 'Mind', '题号': 'Mind'+qNum, '题目': questionMap.Mind['q'+qNum] || '题目'+qNum, '答案': item[key], '时间': item.serverTime }); } } }
+    const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    const user = {};
+    const out = [];
+    raw.forEach(i => { if(i.type==='base') user[i.userCode] = i; });
+    raw.forEach(i => {
+      if(!i.action)return;
+      const base = user[i.userCode] || {};
+      if(i.type.includes('MOS')||i.type.includes('三合一')){
+        for(let k in i){ if(k.startsWith('mos')) out.push({编号:i.userCode,年龄:base.age,性别:base.gender,年级:base.grade,专业:base.major,动作:i.action,问卷:'MOS',题号:k,答案:i[k]}); }
+      }
+      if(i.type.includes('Godspeed')||i.type.includes('三合一')){
+        for(let k in i){ if(k.startsWith('god')) out.push({编号:i.userCode,年龄:base.age,性别:base.gender,年级:base.grade,专业:base.major,动作:i.action,问卷:'Godspeed',题号:k,答案:i[k]}); }
+      }
+      if(i.type.includes('Mind')||i.type.includes('三合一')){
+        for(let k in i){ if(k.startsWith('mind')) out.push({编号:i.userCode,年龄:base.age,性别:base.gender,年级:base.grade,专业:base.major,动作:i.action,问卷:'Mind',题号:k,答案:i[k]}); }
+      }
     });
-    const ws = XLSX.utils.json_to_sheet(excelData); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "数据"); const buf = XLSX.write(wb, { type:'buffer', bookType:'xlsx' });
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); res.setHeader('Content-Disposition', 'attachment; filename="survey.xlsx"'); res.send(buf);
-  } catch (e) { console.error(e); res.status(500).send("导出失败："+e.message); }
+    const ws = XLSX.utils.json_to_sheet(out);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '全部数据');
+    const buf = XLSX.write(wb, {type:'buffer',bookType:'xlsx'});
+    res.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition','attachment;filename=survey.xlsx');
+    res.send(buf);
+  }catch(e){ res.status(500).send('导出失败'); }
 });
 
 app.get('/delete', (req, res) => {
-  const code = req.query.code; const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); const filtered = raw.filter(item => item.userCode !== code); fs.writeFileSync(DATA_FILE, JSON.stringify(filtered, null, 2)); res.redirect('/admin');
+  const code = req.query.code;
+  const arr = JSON.parse(fs.readFileSync(DATA_FILE,'utf8')).filter(i=>i.userCode!==code);
+  fs.writeFileSync(DATA_FILE,JSON.stringify(arr,null,2));
+  res.redirect('/admin');
 });
 
 app.post('/submit', (req, res) => {
-  const d = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); d.push({ ...req.body, serverTime: new Date(Date.now() + 8*3600000).toLocaleString() }); fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2)); res.send({ status: 'ok' });
+  const arr = JSON.parse(fs.readFileSync(DATA_FILE,'utf8'));
+  arr.push({...req.body, serverTime:new Date(Date.now()+8*3600000).toLocaleString()});
+  fs.writeFileSync(DATA_FILE,JSON.stringify(arr,null,2));
+  res.send({status:'ok'});
 });
 
-// 【关键】监听所有地址，强制让Vercel识别为传统服务
+// 启动服务
 app.listen(PORT, '0.0.0.0', () => {
-  console.log("✅ 服务启动成功，监听端口：" + PORT);
+  console.log("✅ 服务启动成功");
 });
