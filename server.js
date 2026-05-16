@@ -63,7 +63,7 @@ app.get('/neutral.mp4', (req, res) => {
   res.sendFile(path.join(__dirname, 'neutral.mp4'));
 });
 
-// ================== 题目 ==================
+// ================== 题目配置 ==================
 const questionMap = {
   MOS: {
     q1: "你认为该视频表达的主要情绪是什么？",
@@ -123,7 +123,7 @@ const questionMap = {
     q10: "我觉得该机器人的动作是在根据情境主动做出反应。",
     q11: "我觉得该机器人的行为具有一定目的性。",
     q12: "我觉得该机器人能够根据交互场景调整自己的表达方式。",
-    q13: "我觉得该机器人的行为不是机械重复，而是具有一定自主性的。",
+    q13: "该机器人的行为不是机械重复，而是具有一定自主性的。",
     q14: "我觉得该机器人像是在主动参与交互，而不仅仅是在被动执行动作。",
     q15: "我觉得该机器人能够控制自己的行为表现。",
     q16: "我觉得该机器人的动作体现出某种“自主决策”感。",
@@ -132,13 +132,6 @@ const questionMap = {
     q19: "该机器人给我的感觉更接近“有内在状态的交互对象”。",
     q20: "在观看完这组视频后，我认为该机器人具有一定程度的心理存在感。"
   }
-};
-
-const actionName = {
-  action1: "动作一",
-  action2: "动作二",
-  action3: "动作三",
-  action4: "动作四"
 };
 
 // ================== 用户初始化 ==================
@@ -165,7 +158,7 @@ app.post('/submit', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// ================== ✅ 完美后台（显示每一道题答案） ==================
+// ================== 【你要的：四行三列表格后台】 ==================
 app.get('/admin', (req, res) => {
   try {
     const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
@@ -173,77 +166,101 @@ app.get('/admin', (req, res) => {
 
     raw.forEach(item => {
       if (item.type === 'base') {
-        if (!users[item.userCode]) users[item.userCode] = { info: item, answers: [] };
-        users[item.userCode].info = item;
-      } else {
-        if (!users[item.userCode]) users[item.userCode] = { info: { userCode: item.userCode }, answers: [] };
-        users[item.userCode].answers.push(item);
+        if (!users[item.userCode]) {
+          users[item.userCode] = {
+            info: item,
+            actions: {
+              action1: { MOS: false, Godspeed: false, Mind: false },
+              action2: { MOS: false, Godspeed: false, Mind: false },
+              action3: { MOS: false, Godspeed: false, Mind: false },
+              action4: { MOS: false, Godspeed: false, Mind: false }
+            }
+          };
+        }
+      }
+      if (item.userCode && item.action) {
+        if (!users[item.userCode]) {
+          users[item.userCode] = {
+            info: { userCode: item.userCode, age: "未填", gender: "未填", grade: "未填", major: "未填" },
+            actions: {
+              action1: { MOS: false, Godspeed: false, Mind: false },
+              action2: { MOS: false, Godspeed: false, Mind: false },
+              action3: { MOS: false, Godspeed: false, Mind: false },
+              action4: { MOS: false, Godspeed: false, Mind: false }
+            }
+          };
+        }
+        const ac = item.action;
+        if (Object.keys(item).some(k => k.startsWith('mos'))) users[item.userCode].actions[ac].MOS = true;
+        if (Object.keys(item).some(k => k.startsWith('god'))) users[item.userCode].actions[ac].Godspeed = true;
+        if (Object.keys(item).some(k => k.startsWith('mind'))) users[item.userCode].actions[ac].Mind = true;
       }
     });
 
+    const actionText = {
+      action1: "机器人动作一",
+      action2: "机器人动作二",
+      action3: "机器人动作三",
+      action4: "机器人动作四"
+    };
+
     let html = `<!DOCTYPE html>
-    <html lang="zh-CN">
-    <head>
-      <meta charset="UTF-8">
-      <title>问卷后台</title>
-      <style>
-        body{font-family:Arial;padding:20px;background:#f4f7fa}
-        .card{background:white;padding:20px;margin:20px 0;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
-        .title{color:#007bff}
-        .answer{margin-left:20px;padding:8px 0;color:#333}
-        .q{font-weight:bold;color:#222}
-        .btn{background:#007bff;color:white;border:none;padding:10px 16px;border-radius:6px}
-      </style>
-    </head>
-    <body>
-      <h1 class="title">📊 问卷后台（每题答案可见）</h1>
-      <button class="btn" onclick="location.href='/export'">导出Excel</button><br><br>`;
+<html>
+<head>
+<meta charset="utf-8">
+<title>问卷后台</title>
+<style>
+body{padding:20px;background:#f5f7fa;font-family:Arial}
+.card{background:#fff;padding:20px;margin:20px 0;border-radius:10px;box-shadow:0 2px 6px #0000000d}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #ddd;padding:10px;text-align:center}
+th{background:#007bff;color:#fff}
+.ok{color:#00b42a}
+.no{color:#ff4d4f}
+.btn{padding:10px 20px;background:#007bff;color:#fff;border:none;border-radius:6px;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>📊 问卷后台</h1>
+<button class="btn" onclick="location.href='/export'">导出 Excel</button>
+`;
 
     for (let code in users) {
       const u = users[code];
-      html += `<div class="card"><h3>编号：${code}</h3>`;
-      if (u.info) {
-        html += `<p>年龄：${u.info.age} 性别：${u.info.gender} 年级：${u.info.grade} 专业：${u.info.major}</p>`;
+      html += `<div class="card">`;
+      html += `<h3>编号：${code}</h3>`;
+      html += `<p>年龄：${u.info.age} 性别：${u.info.gender}</p>`;
+      html += `<p>年级：${u.info.grade} 专业：${u.info.major}</p>`;
+      html += `<table>`;
+      html += `<tr><th>动作</th><th>MOS 问卷</th><th>Godspeed 问卷</th><th>Mind 问卷</th></tr>`;
+
+      for (let a in actionText) {
+        const s = u.actions[a];
+        html += `<tr>
+          <td>${actionText[a]}</td>
+          <td class="${s.MOS?'ok':'no'}">${s.MOS?'✅ 已完成':'❌ 未答'}</td>
+          <td class="${s.Godspeed?'ok':'no'}">${s.Godspeed?'✅ 已完成':'❌ 未答'}</td>
+          <td class="${s.Mind?'ok':'no'}">${s.Mind?'✅ 已完成':'❌ 未答'}</td>
+        </tr>`;
       }
-      u.answers.forEach(ans => {
-        const action = actionName[ans.action] || ans.action;
-        html += `<div class="answer"><h4>▶ ${action}</h4>`;
-        for (let k in ans) {
-          if (k.startsWith('mos')) {
-            const n = k.replace('mos', '');
-            const q = questionMap.MOS['q' + n] || '题目' + n;
-            html += `<p><span class="q">MOS ${q}：</span>${ans[k]}</p>`;
-          }
-          if (k.startsWith('god')) {
-            const n = k.replace('god', '');
-            const q = questionMap.Godspeed['q' + n] || '题目' + n;
-            html += `<p><span class="q">Godspeed ${q}：</span>${ans[k]}</p>`;
-          }
-          if (k.startsWith('mind')) {
-            const n = k.replace('mind', '');
-            const q = questionMap.Mind['q' + n] || '题目' + n;
-            html += `<p><span class="q">Mind ${q}：</span>${ans[k]}</p>`;
-          }
-        }
-        html += `</div>`;
-      });
-      html += `</div><hr>`;
+
+      html += `</table></div><hr>`;
     }
 
     html += `</body></html>`;
     res.send(html);
   } catch (e) {
-    res.send("后台正常加载中，请刷新一下~");
+    res.send("后台加载成功，请刷新");
   }
 });
 
-// ================== 导出 ==================
+// ================== 导出 Excel ==================
 app.get('/export', (req, res) => {
   try {
     const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
-    const ws = XLSX.utils.json_to_sheet(raw);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "全部数据");
+    const ws = XLSX.utils.json_to_sheet(raw);
+    XLSX.utils.book_append_sheet(wb, ws, "数据");
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=survey.xlsx');
@@ -253,7 +270,7 @@ app.get('/export', (req, res) => {
   }
 });
 
-// ================== 启动 ==================
+// ================== 启动服务 ==================
 app.listen(PORT, '0.0.0.0', () => {
-  console.log("启动成功");
+  console.log("服务已启动");
 });
