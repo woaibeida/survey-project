@@ -8,297 +8,550 @@ const PORT = process.env.PORT || 3000;
 
 const DATA_FILE = path.join(__dirname, "results.json");
 
+/* =========================================
+   中间件
+========================================= */
+
 app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// 静态资源
 app.use(express.static(__dirname));
 
+/* =========================================
+   首页路由（修复 Cannot GET /）
+========================================= */
+
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
+});
+
+app.get("/index.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
+});
+
+app.get("/action1.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "action1.html"));
+});
+
+// 后面有 action2/3/4 时取消注释即可
+/*
+app.get("/action2.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "action2.html"));
+});
+
+app.get("/action3.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "action3.html"));
+});
+
+app.get("/action4.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "action4.html"));
+});
+*/
+
+/* =========================================
+   读取 results.json
+========================================= */
+
 function readResults() {
-    if (!fs.existsSync(DATA_FILE)) return [];
     try {
-        return JSON.parse(fs.readFileSync(DATA_FILE, "utf8") || "[]");
-    } catch {
+        if (!fs.existsSync(DATA_FILE)) {
+            fs.writeFileSync(DATA_FILE, "[]");
+        }
+
+        const raw = fs.readFileSync(DATA_FILE, "utf8");
+
+        return JSON.parse(raw || "[]");
+    } catch (err) {
+        console.error("读取 results.json 失败", err);
         return [];
     }
 }
 
+/* =========================================
+   写入 results.json
+========================================= */
+
 function writeResults(data) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
+    try {
+        fs.writeFileSync(
+            DATA_FILE,
+            JSON.stringify(data, null, 2),
+            "utf8"
+        );
+    } catch (err) {
+        console.error("写入 results.json 失败", err);
+    }
 }
 
-function avg(data, prefix, count) {
+/* =========================================
+   计算平均分
+========================================= */
+
+function calcAvg(data, prefix, count) {
     let sum = 0;
-    let n = 0;
+    let valid = 0;
 
     for (let i = 1; i <= count; i++) {
-        const v = Number(data[`${prefix}${i}`]);
-        if (!isNaN(v)) {
-            sum += v;
-            n++;
+        const value = Number(data[`${prefix}${i}`]);
+
+        if (!isNaN(value)) {
+            sum += value;
+            valid++;
         }
     }
 
-    return n ? Number((sum / n).toFixed(2)) : "";
+    if (valid === 0) return "";
+
+    return Number((sum / valid).toFixed(2));
 }
 
-function normalizeRecord(data) {
-    return {
-        id: Date.now().toString(),
-        submitTime: new Date().toLocaleString("zh-CN"),
-        userCode: data.userCode || data.id || "未知",
-
-        grade: data.grade || data年级 || data.userGrade || "",
-        major: data.major || data专业 || data.userMajor || "",
-        gender: data.gender || data性别 || data.userGender || "",
-        age: data.age || data年龄 || data.userAge || "",
-
-        action: data.action || "unknown",
-        type: data.type || "",
-
-        mosAvg: avg(data, "mos", 17),
-        godAvg: avg(data, "god", 24),
-        mindAvg: avg(data, "mind", 20),
-
-        raw: data
-    };
-}
+/* =========================================
+   提交问卷
+========================================= */
 
 app.post("/submit", (req, res) => {
     try {
-        const results = readResults();
-        const record = normalizeRecord(req.body);
+        const body = req.body;
 
-        results.push(record);
+        const results = readResults();
+
+        const newRecord = {
+            id: Date.now().toString(),
+
+            submitTime: new Date().toLocaleString("zh-CN"),
+
+            // 基本信息
+            userCode: body.userCode || "未知",
+            grade: body.grade || "",
+            major: body.major || "",
+            gender: body.gender || "",
+            age: body.age || "",
+
+            // 动作
+            action: body.action || "",
+
+            // 问卷类型
+            type: body.type || "",
+
+            // 平均分
+            mosAvg: calcAvg(body, "mos", 17),
+            godAvg: calcAvg(body, "god", 24),
+            mindAvg: calcAvg(body, "mind", 20),
+
+            // 原始数据
+            raw: body
+        };
+
+        results.push(newRecord);
+
         writeResults(results);
+
+        console.log("新问卷提交：", newRecord.userCode);
 
         res.json({
             success: true,
-            message: "提交成功",
-            record
+            message: "提交成功"
         });
+
     } catch (err) {
         console.error(err);
+
         res.status(500).json({
             success: false,
-            message: "保存失败"
+            message: "提交失败"
         });
     }
 });
 
+/* =========================================
+   获取后台数据
+========================================= */
+
 app.get("/api/results", (req, res) => {
-    const results = readResults();
+    try {
+        const results = readResults();
 
-    const users = {};
+        const grouped = {};
 
-    results.forEach(r => {
-        const userCode = r.userCode || "未知";
+        results.forEach(item => {
+            const userCode = item.userCode || "未知";
 
-        if (!users[userCode]) {
-            users[userCode] = {
-                userCode,
-                grade: r.grade || "",
-                major: r.major || "",
-                gender: r.gender || "",
-                age: r.age || "",
-                records: []
-            };
-        }
+            if (!grouped[userCode]) {
+                grouped[userCode] = {
+                    userCode,
+                    grade: item.grade || "",
+                    major: item.major || "",
+                    gender: item.gender || "",
+                    age: item.age || "",
+                    records: []
+                };
+            }
 
-        users[userCode].records.push(r);
-    });
+            grouped[userCode].records.push(item);
+        });
 
-    res.json(Object.values(users));
+        res.json(Object.values(grouped));
+
+    } catch (err) {
+        console.error(err);
+
+        res.status(500).json([]);
+    }
 });
+
+/* =========================================
+   删除受试者
+========================================= */
 
 app.delete("/api/delete/:userCode", (req, res) => {
-    const userCode = req.params.userCode;
-    const results = readResults();
+    try {
+        const userCode = req.params.userCode;
 
-    const newResults = results.filter(r => r.userCode !== userCode);
-    writeResults(newResults);
+        const results = readResults();
 
-    res.json({
-        success: true,
-        message: `已删除受试者 ${userCode}`
-    });
+        const filtered = results.filter(
+            item => item.userCode !== userCode
+        );
+
+        writeResults(filtered);
+
+        res.json({
+            success: true,
+            message: "删除成功"
+        });
+
+    } catch (err) {
+        console.error(err);
+
+        res.status(500).json({
+            success: false
+        });
+    }
 });
+
+/* =========================================
+   导出 Excel
+========================================= */
 
 app.get("/export", (req, res) => {
-    const results = readResults();
+    try {
+        const results = readResults();
 
-    const rows = results.map(r => ({
-        受试者ID: r.userCode,
-        年级: r.grade,
-        专业: r.major,
-        性别: r.gender,
-        年龄: r.age,
-        动作: r.action,
-        类型: r.type,
-        MOS平均分: r.mosAvg,
-        Godspeed平均分: r.godAvg,
-        Mind平均分: r.mindAvg,
-        提交时间: r.submitTime,
-        原始数据: JSON.stringify(r.raw)
-    }));
+        const excelData = results.map(item => ({
+            受试者ID: item.userCode,
+            年级: item.grade,
+            专业: item.major,
+            性别: item.gender,
+            年龄: item.age,
+            动作: item.action,
+            MOS平均分: item.mosAvg,
+            Godspeed平均分: item.godAvg,
+            Mind平均分: item.mindAvg,
+            提交时间: item.submitTime
+        }));
 
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, "问卷结果");
+        const workbook = XLSX.utils.book_new();
 
-    const buffer = XLSX.write(workbook, {
-        type: "buffer",
-        bookType: "xlsx"
-    });
+        XLSX.utils.book_append_sheet(
+            workbook,
+            worksheet,
+            "问卷数据"
+        );
 
-    res.setHeader("Content-Disposition", "attachment; filename=results.xlsx");
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    res.send(buffer);
+        const buffer = XLSX.write(workbook, {
+            type: "buffer",
+            bookType: "xlsx"
+        });
+
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=results.xlsx"
+        );
+
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+
+        res.send(buffer);
+
+    } catch (err) {
+        console.error(err);
+
+        res.status(500).send("导出失败");
+    }
 });
 
+/* =========================================
+   后台页面
+========================================= */
+
 app.get("/admin", (req, res) => {
+
     res.send(`
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+
 <title>问卷后台管理</title>
+
 <style>
-body {
-    font-family: Arial, "Microsoft YaHei", sans-serif;
-    background: #f5f7fa;
-    padding: 30px;
+
+body{
+    margin:0;
+    padding:30px;
+    background:#f5f7fa;
+    font-family:
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
 }
-h1 {
-    text-align: center;
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
 }
-.top {
-    text-align: center;
-    margin-bottom: 25px;
+
+.top{
+    text-align:center;
+    margin-bottom:30px;
 }
-button, a.btn {
-    border: none;
-    background: #2d8cf0;
-    color: white;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 14px;
+
+.btn{
+    background:#2d8cf0;
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    text-decoration:none;
+    font-size:14px;
 }
-.delete {
-    background: #e74c3c;
+
+.card{
+    background:white;
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:25px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.08);
 }
-.card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 25px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+
+.info{
+    line-height:1.9;
+    margin-bottom:15px;
 }
-.info {
-    margin-bottom: 15px;
-    line-height: 1.8;
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
 }
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 12px;
+
+th,td{
+    border:1px solid #ddd;
+    padding:10px;
+    text-align:center;
 }
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
+
+th{
+    background:#f0f4f8;
 }
-th {
-    background: #f0f4f8;
+
+.delete-btn{
+    margin-top:18px;
+    background:#e74c3c;
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:8px;
+    cursor:pointer;
 }
-.empty {
-    color: #999;
+
+.empty{
+    color:#999;
 }
+
 </style>
 </head>
+
 <body>
 
 <h1>问卷后台管理</h1>
 
 <div class="top">
-    <a class="btn" href="/export">导出 Excel</a>
+    <a class="btn" href="/export">
+        导出 Excel
+    </a>
 </div>
 
 <div id="app"></div>
 
 <script>
-async function loadData() {
+
+async function loadData(){
+
     const res = await fetch("/api/results");
+
     const users = await res.json();
 
     const app = document.getElementById("app");
 
-    if (!users.length) {
-        app.innerHTML = "<p style='text-align:center;color:#999;'>暂无数据</p>";
+    if(users.length === 0){
+
+        app.innerHTML =
+        "<p style='text-align:center;color:#999;'>暂无数据</p>";
+
         return;
     }
 
     app.innerHTML = users.map(user => {
-        const actions = ["action1", "action2", "action3", "action4"];
-        const rows = ["MOS", "Godspeed", "Mind"];
 
-        function getScore(action, type) {
-            const r = user.records.find(x => x.action === action);
-            if (!r) return "<span class='empty'>未完成</span>";
+        const actions = [
+            "action1",
+            "action2",
+            "action3",
+            "action4"
+        ];
 
-            if (type === "MOS") return r.mosAvg || "-";
-            if (type === "Godspeed") return r.godAvg || "-";
-            if (type === "Mind") return r.mindAvg || "-";
+        function getRecord(action){
+
+            return user.records.find(
+                r => r.action === action
+            );
         }
 
         return \`
-            <div class="card">
-                <div class="info">
-                    <strong>受试者ID：</strong>\${user.userCode}<br>
-                    <strong>年级：</strong>\${user.grade || "-"}　
-                    <strong>专业：</strong>\${user.major || "-"}　
-                    <strong>性别：</strong>\${user.gender || "-"}　
-                    <strong>年龄：</strong>\${user.age || "-"}
-                </div>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>问卷 / 动作</th>
-                            <th>Action 1</th>
-                            <th>Action 2</th>
-                            <th>Action 3</th>
-                            <th>Action 4</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        \${rows.map(row => \`
-                            <tr>
-                                <th>\${row}</th>
-                                \${actions.map(action => \`<td>\${getScore(action, row)}</td>\`).join("")}
-                            </tr>
-                        \`).join("")}
-                    </tbody>
-                </table>
+<div class="card">
 
-                <br>
-                <button class="delete" onclick="deleteUser('\${user.userCode}')">删除该受试者数据</button>
-            </div>
-        \`;
+<div class="info">
+
+<strong>受试者ID：</strong>
+\${user.userCode}
+
+<br>
+
+<strong>年级：</strong>
+\${user.grade || "-"}
+
+　
+
+<strong>专业：</strong>
+\${user.major || "-"}
+
+　
+
+<strong>性别：</strong>
+\${user.gender || "-"}
+
+　
+
+<strong>年龄：</strong>
+\${user.age || "-"}
+
+</div>
+
+<table>
+
+<thead>
+<tr>
+<th>问卷 / 动作</th>
+<th>Action1</th>
+<th>Action2</th>
+<th>Action3</th>
+<th>Action4</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+
+<th>MOS</th>
+
+\${actions.map(action => {
+
+const r = getRecord(action);
+
+return \`<td>\${r ? r.mosAvg : "<span class='empty'>未完成</span>"}</td>\`;
+
+}).join("")}
+
+</tr>
+
+<tr>
+
+<th>Godspeed</th>
+
+\${actions.map(action => {
+
+const r = getRecord(action);
+
+return \`<td>\${r ? r.godAvg : "<span class='empty'>未完成</span>"}</td>\`;
+
+}).join("")}
+
+</tr>
+
+<tr>
+
+<th>Mind</th>
+
+\${actions.map(action => {
+
+const r = getRecord(action);
+
+return \`<td>\${r ? r.mindAvg : "<span class='empty'>未完成</span>"}</td>\`;
+
+}).join("")}
+
+</tr>
+
+</tbody>
+
+</table>
+
+<button
+class="delete-btn"
+onclick="deleteUser('\${user.userCode}')"
+>
+删除该受试者
+</button>
+
+</div>
+
+\`;
+
     }).join("");
 }
 
-async function deleteUser(userCode) {
-    if (!confirm("确定要删除受试者 " + userCode + " 的全部数据吗？")) return;
+async function deleteUser(userCode){
 
-    await fetch("/api/delete/" + encodeURIComponent(userCode), {
-        method: "DELETE"
-    });
+    const ok = confirm(
+        "确定删除受试者 " +
+        userCode +
+        " 的全部数据吗？"
+    );
+
+    if(!ok) return;
+
+    await fetch(
+        "/api/delete/" +
+        encodeURIComponent(userCode),
+        {
+            method:"DELETE"
+        }
+    );
 
     loadData();
 }
 
 loadData();
+
 </script>
 
 </body>
@@ -306,6 +559,10 @@ loadData();
     `);
 });
 
+/* =========================================
+   启动服务器
+========================================= */
+
 app.listen(PORT, () => {
-    console.log("Server running on port " + PORT);
+    console.log("服务器运行中：http://localhost:" + PORT);
 });
