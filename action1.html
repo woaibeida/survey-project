@@ -930,51 +930,70 @@ Mind 问卷 20题
         });
 
         // 统一提交
-        async function submitAction1(){
-            // 检查是否全部答完
-            function checkAll(){
-                let ok = true;
-                for(let i=1;i<=17;i++) if(!document.querySelector(`input[name="mos${i}"]:checked`)) ok=false;
-                for(let i=1;i<=24;i++) if(!document.querySelector(`input[name="god${i}"]:checked`)) ok=false;
-                for(let i=1;i<=20;i++) if(!document.querySelector(`input[name="mind${i}"]:checked`)) ok=false;
-                return ok;
-            }
+       async function submitAction1(){
+    function checkAll(){
+        let ok = true;
+        for(let i=1;i<=17;i++) if(!document.querySelector(`input[name="mos${i}"]:checked`)) ok=false;
+        for(let i=1;i<=24;i++) if(!document.querySelector(`input[name="god${i}"]:checked`)) ok=false;
+        for(let i=1;i<=20;i++) if(!document.querySelector(`input[name="mind${i}"]:checked`)) ok=false;
+        return ok;
+    }
 
-            if(!checkAll()){
-                alert("还有题目未完成，请继续答题");
-                return;
-            }
+    if(!checkAll()){
+        alert("还有题目未完成，请继续答题");
+        return;
+    }
 
-            // 获取答案
-            const g = n => document.querySelector(`input[name="${n}"]:checked`)?.value || "";
-            const userCode = localStorage.getItem("user3Code") || "未知";
+    const g = n => document.querySelector(`input[name="${n}"]:checked`)?.value || "";
 
-            const data = {
-                time: new Date().toLocaleString(),
-                userCode: userCode,
-                type: "动作一问卷（三合一）",
-                action: "action1",
-                mos1:g("mos1"),mos2:g("mos2"),mos3:g("mos3"),mos4:g("mos4"),mos5:g("mos5"),mos6:g("mos6"),mos7:g("mos7"),mos8:g("mos8"),mos9:g("mos9"),mos10:g("mos10"),mos11:g("mos11"),mos12:g("mos12"),mos13:g("mos13"),mos14:g("mos14"),mos15:g("mos15"),mos16:g("mos16"),mos17:g("mos17"),
-                god1:g("god1"),god2:g("god2"),god3:g("god3"),god4:g("god4"),god5:g("god5"),god6:g("god6"),god7:g("god7"),god8:g("god8"),god9:g("god9"),god10:g("god10"),god11:g("god11"),god12:g("god12"),god13:g("god13"),god14:g("god14"),god15:g("god15"),god16:g("god16"),god17:g("god17"),god18:g("god18"),god19:g("god19"),god20:g("god20"),god21:g("god21"),god22:g("god22"),god23:g("god23"),god24:g("god24"),
-                mind1:g("mind1"),mind2:g("mind2"),mind3:g("mind3"),mind4:g("mind4"),mind5:g("mind5"),mind6:g("mind6"),mind7:g("mind7"),mind8:g("mind8"),mind9:g("mind9"),mind10:g("mind10"),mind11:g("mind11"),mind12:g("mind12"),mind13:g("mind13"),mind14:g("mind14"),mind15:g("mind15"),mind16:g("mind16"),mind17:g("mind17"),mind18:g("mind18"),mind19:g("mind19"),mind20:g("mind20")
-            };
+    const userCode = localStorage.getItem("user3Code") || "未知";
+    const age = localStorage.getItem("userAge") || "";
+    const gender = localStorage.getItem("userGender") || "";
+    const grade = localStorage.getItem("userGrade") || "";
+    const major = localStorage.getItem("userMajor") || "";
 
-            const res = await fetch("/submit",{
-                method:"POST",
-                headers:{"Content-Type":"application/json"},
-                body:JSON.stringify(data)
-            });
+    const data = {
+        time: new Date().toLocaleString(),
+        userCode,
+        age,
+        gender,
+        grade,
+        major,
 
-            if(res.ok){
-                let done = JSON.parse(localStorage.getItem("completedActions")||"[]");
-                if(!done.includes("action1")) done.push("action1");
-                localStorage.setItem("completedActions",JSON.stringify(done));
-                alert("✅ 动作一全部问卷提交成功！");
-                window.location.href = "index.html";
-            }else{
-                alert("提交失败，请重试");
-            }
-        }
+        type: "动作一问卷（三合一）",
+        action: "action1"
+    };
+
+    for(let i=1;i<=17;i++){
+        data[`mos${i}`] = g(`mos${i}`);
+    }
+
+    for(let i=1;i<=24;i++){
+        data[`god${i}`] = g(`god${i}`);
+    }
+
+    for(let i=1;i<=20;i++){
+        data[`mind${i}`] = g(`mind${i}`);
+    }
+
+    const res = await fetch("/submit",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(data)
+    });
+
+    if(res.ok){
+        let done = JSON.parse(localStorage.getItem("completedActions")||"[]");
+        if(!done.includes("action1")) done.push("action1");
+        localStorage.setItem("completedActions",JSON.stringify(done));
+
+        alert("✅ 动作一全部问卷提交成功！");
+        window.location.href = "index.html";
+    }else{
+        const text = await res.text();
+        alert("提交失败：" + text);
+    }
+}
     </script>
 </body>
 </html>
