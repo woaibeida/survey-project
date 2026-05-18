@@ -946,11 +946,29 @@ Mind 问卷 20题
 
     const g = n => document.querySelector(`input[name="${n}"]:checked`)?.value || "";
 
-    const userCode = localStorage.getItem("user3Code") || "未知";
-    const age = localStorage.getItem("userAge") || "";
-    const gender = localStorage.getItem("userGender") || "";
-    const grade = localStorage.getItem("userGrade") || "";
-    const major = localStorage.getItem("userMajor") || "";
+    const age =
+    localStorage.getItem("userAge") ||
+    localStorage.getItem("age") ||
+    localStorage.getItem("年龄") ||
+    "";
+
+const gender =
+    localStorage.getItem("userGender") ||
+    localStorage.getItem("gender") ||
+    localStorage.getItem("性别") ||
+    "";
+
+const grade =
+    localStorage.getItem("userGrade") ||
+    localStorage.getItem("grade") ||
+    localStorage.getItem("年级") ||
+    "";
+
+const major =
+    localStorage.getItem("userMajor") ||
+    localStorage.getItem("major") ||
+    localStorage.getItem("专业") ||
+    "";
 
     const data = {
         time: new Date().toLocaleString(),
