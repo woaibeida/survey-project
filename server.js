@@ -476,17 +476,17 @@ async function loadData(){
                     </thead>
                     <tbody>
                         <tr>
-                            <th>MOS 平均分</th>
-                            \${actions.map(a => \`<td>\${cell(a,"mos_avg")}</td>\`).join("")}
-                        </tr>
-                        <tr>
-                            <th>Godspeed 平均分</th>
-                            \${actions.map(a => \`<td>\${cell(a,"god_avg")}</td>\`).join("")}
-                        </tr>
-                        <tr>
-                            <th>Mind 平均分</th>
-                            \${actions.map(a => \`<td>\${cell(a,"mind_avg")}</td>\`).join("")}
-                        </tr>
+    <th>MOS</th>
+    ${actions.map(a => `<td>${getRecord(a) ? "已完成" : "<span class='empty'>未完成</span>"}</td>`).join("")}
+</tr>
+<tr>
+    <th>Godspeed</th>
+    ${actions.map(a => `<td>${getRecord(a) ? "已完成" : "<span class='empty'>未完成</span>"}</td>`).join("")}
+</tr>
+<tr>
+    <th>Mind</th>
+    ${actions.map(a => `<td>${getRecord(a) ? "已完成" : "<span class='empty'>未完成</span>"}</td>`).join("")}
+</tr>
                     </tbody>
                 </table>
 
