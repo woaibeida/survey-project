@@ -133,7 +133,6 @@ app.post("/submit", async (req, res) => {
             success: true,
             message: "提交成功"
         });
-
     } catch (err) {
         console.error(err);
 
@@ -176,7 +175,6 @@ app.get("/api/results", async (req, res) => {
         });
 
         res.json(Object.values(grouped));
-
     } catch (err) {
         console.error(err);
         res.json([]);
@@ -198,7 +196,6 @@ app.delete("/api/delete/:userCode", async (req, res) => {
         }
 
         res.json({ success: true });
-
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false });
@@ -270,7 +267,6 @@ app.get("/export", async (req, res) => {
         );
 
         res.send(buffer);
-
     } catch (err) {
         console.error(err);
         res.status(500).send("导出失败");
@@ -347,6 +343,10 @@ th{
 .empty{
     color:#999;
 }
+.done{
+    color:#16a34a;
+    font-weight:bold;
+}
 details{
     margin-top:18px;
     background:#fafafa;
@@ -401,10 +401,10 @@ async function loadData(){
             return user.records.find(r => r.action === action);
         }
 
-        function cell(action,key){
-            const r = getRecord(action);
-            if(!r) return "<span class='empty'>未完成</span>";
-            return r[key] ?? "-";
+        function completeCell(action){
+            return getRecord(action)
+                ? "<span class='done'>已完成</span>"
+                : "<span class='empty'>未完成</span>";
         }
 
         function detailTable(prefix, count, raw){
@@ -477,16 +477,16 @@ async function loadData(){
                     <tbody>
                         <tr>
                             <th>MOS</th>
-                            ${actions.map(a => `<td>${getRecord(a) ? "已完成" : "<span class='empty'>未完成</span>"}</td>`).join("")}
+                            \${actions.map(a => \`<td>\${completeCell(a)}</td>\`).join("")}
                         </tr>
                         <tr>
                             <th>Godspeed</th>
-                            ${actions.map(a => `<td>${getRecord(a) ? "已完成" : "<span class='empty'>未完成</span>"}</td>`).join("")}
+                            \${actions.map(a => \`<td>\${completeCell(a)}</td>\`).join("")}
                         </tr>
                         <tr>
                             <th>Mind</th>
-                            ${actions.map(a => `<td>${getRecord(a) ? "已完成" : "<span class='empty'>未完成</span>"}</td>`).join("")}
-                    </tr>
+                            \${actions.map(a => \`<td>\${completeCell(a)}</td>\`).join("")}
+                        </tr>
                     </tbody>
                 </table>
 
