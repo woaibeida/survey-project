@@ -946,41 +946,45 @@ Mind 问卷 20题
 
     const g = n => document.querySelector(`input[name="${n}"]:checked`)?.value || "";
 
-    const age =
+const userCode =
+    localStorage.getItem("user3Code") ||
+    localStorage.getItem("userCode") ||
+    localStorage.getItem("code") ||
+    "未知";
+
+const age =
     localStorage.getItem("userAge") ||
     localStorage.getItem("age") ||
-    localStorage.getItem("年龄") ||
     "";
 
 const gender =
     localStorage.getItem("userGender") ||
     localStorage.getItem("gender") ||
-    localStorage.getItem("性别") ||
     "";
 
 const grade =
     localStorage.getItem("userGrade") ||
     localStorage.getItem("grade") ||
-    localStorage.getItem("年级") ||
     "";
 
 const major =
     localStorage.getItem("userMajor") ||
     localStorage.getItem("major") ||
-    localStorage.getItem("专业") ||
     "";
 
-    const data = {
-        time: new Date().toLocaleString(),
-        userCode,
-        age,
-        gender,
-        grade,
-        major,
+const data = {
+    time: new Date().toLocaleString(),
+    userCode: userCode,
+    age: age,
+    gender: gender,
+    grade: grade,
+    major: major,
 
-        type: "动作一问卷（三合一）",
-        action: "action1"
-    };
+    type: "动作一问卷（三合一）",
+    action: "action1"
+};
+
+    
 
     for(let i=1;i<=17;i++){
         data[`mos${i}`] = g(`mos${i}`);
