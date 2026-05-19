@@ -22,6 +22,7 @@ app.get("/", (req, res) => {
 
 [
     "index",
+    "action1_check",
     "action1",
     "action2",
     "action3",
