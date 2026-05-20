@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>动作二身份验证与情绪清洗</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+}
+body{
+    background:#f5f7fa;
+    padding:20px;
+}
+.container{
+    max-width:100%;
+    background:#fff;
+    border-radius:16px;
+    padding:30px 25px;
+    margin:0 auto;
+}
+h2{
+    text-align:center;
+    font-size:20px;
+    margin-bottom:10px;
+}
+.title-en{
+    text-align:center;
+    color:#666;
+    margin-bottom:30px;
+}
+.verify-box{
+    background:#f0f6ff;
+    padding:20px;
+    border-radius:12px;
+    text-align:center;
+    margin-bottom:25px;
+}
+.code-input{
+    width:100%;
+    padding:14px;
+    font-size:18px;
+    text-align:center;
+    letter-spacing:4px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    margin:15px 0;
+    text-transform:uppercase;
+}
+.verify-btn{
+    width:100%;
+    padding:14px;
+    background:#2d8cf0;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+}
+.error-info{
+    background:#fee;
+    color:#d93025;
+    padding:12px;
+    border-radius:8px;
+    text-align:center;
+    margin-bottom:15px;
+    display:none;
+}
+.success-info{
+    background:#e6f7ef;
+    color:#009a54;
+    padding:12px;
+    border-radius:8px;
+    text-align:center;
+    margin-bottom:15px;
+    display:none;
+}
+.sound-remind,
+.video-desc,
+.video-wrap,
+.countdown-tip{
+    display:none;
+}
+.sound-remind{
+    color:#d93025;
+    text-align:center;
+    margin-bottom:12px;
+    font-weight:500;
+}
+.video-desc{
+    font-size:15px;
+    color:#555;
+    line-height:1.7;
+    margin-bottom:15px;
+}
+video{
+    width:100%;
+    border-radius:10px;
+    background:#000;
+}
+.countdown-tip{
+    text-align:center;
+    font-size:14px;
+    color:#777;
+    margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <h2>动作二身份验证</h2>
+    <div class="title-en">Action 2 Verification + Emotion Wash</div>
+
+    <div class="verify-box" id="verifyBox">
+        <p>请输入您在首页获取的 3 位英文实验编码</p>
+        <input type="text" class="code-input" id="inputCode" maxlength="3" placeholder="例如：ABC">
+        <button class="verify-btn" onclick="checkCode()">验证身份</button>
+    </div>
+
+    <div class="error-info" id="errorInfo">
+        ❌ 编码错误，请输入首页生成的 3 位英文编码
+    </div>
+
+    <div class="success-info" id="successInfo">
+        ✅ 身份验证通过
+    </div>
+
+    <div class="sound-remind" id="soundRemind">
+        ⚠️ 请打开设备音量，并完整观看情绪清洗视频
+    </div>
+
+    <div class="video-desc" id="videoDesc">
+        接下来将播放一段情绪清洗视频，用于帮助您平复情绪并进入统一实验状态。
+        请您认真观看，60 秒结束后系统将自动进入动作一问卷页面。
+    </div>
+
+    <div class="video-wrap" id="videoWrap">
+        <video id="emotionVideo" playsinline webkit-playsinline controls>
+            <source src="https://pnxalcwyskaydclnxapo.supabase.co/storage/v1/object/public/video/video.mp4" type="video/mp4">
+            您的浏览器不支持视频播放
+        </video>
+    </div>
+
+    <div class="countdown-tip" id="countdownTip">
+        请继续观看，剩余 <span id="timeNum">60</span> 秒
+    </div>
+
+</div>
+
+<script>
+const rightCode = localStorage.getItem("user3Code") || "";
+let countDownTime = 60;
+let timer = null;
+let started = false;
+
+function checkCode(){
+    const inputVal = document.getElementById("inputCode").value.trim().toUpperCase();
+    const errorDom = document.getElementById("errorInfo");
+
+    errorDom.style.display = "none";
+
+    if(!/^[A-Z]{3}$/.test(inputVal) || inputVal !== rightCode){
+        errorDom.style.display = "block";
+        return;
+    }
+
+    document.getElementById("verifyBox").style.display = "none";
+    document.getElementById("successInfo").style.display = "block";
+    document.getElementById("soundRemind").style.display = "block";
+    document.getElementById("videoDesc").style.display = "block";
+    document.getElementById("videoWrap").style.display = "block";
+    document.getElementById("countdownTip").style.display = "block";
+
+    const video = document.getElementById("emotionVideo");
+    video.play();
+
+    startCountdown();
+}
+
+function startCountdown(){
+    if(started) return;
+    started = true;
+
+    const timeNum = document.getElementById("timeNum");
+
+    timer = setInterval(() => {
+        countDownTime--;
+        timeNum.innerText = countDownTime;
+
+        if(countDownTime <= 0){
+            clearInterval(timer);
+            localStorage.setItem("action2EmotionWashDone", "true");
+            window.location.href = "action2.html";
+        }
+    }, 1000);
+}
+</script>
+
+</body>
+</html>
