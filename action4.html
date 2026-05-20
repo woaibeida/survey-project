@@ -1006,7 +1006,7 @@ const data = {
 
     if(res.ok){
         let done = JSON.parse(localStorage.getItem("completedActions")||"[]");
-        if(!done.includes("action2")) done.push("action2");
+        if(!done.includes("action4")) done.push("action4");
         localStorage.setItem("completedActions",JSON.stringify(done));
 
         alert("✅ 动作四全部问卷提交成功！");
