@@ -232,6 +232,7 @@ app.get("/export", async (req, res) => {
                 MOS平均分: item.mos_avg,
                 Godspeed平均分: item.god_avg,
                 Mind平均分: item.mind_avg,
+                情绪判断: raw.mos1 || "",
                 提交时间: item.submit_time
             };
 
@@ -293,6 +294,10 @@ body{
     font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;
 }
 h1{
+    text-align:center;
+    margin-bottom:15px;
+}
+h2{
     text-align:center;
     margin-bottom:15px;
 }
@@ -402,15 +407,83 @@ async function loadData(){
         return;
     }
 
-    app.innerHTML = users.map(user => {
-        const actions = ["action1","action2","action3","action4"];
-        const correctEmotion = {
-            action1: "Angry",
-            action2: "Happy",
-            action3: "Sad",
-            action4: "Afraid"
-        };
-                
+    const actions = ["action1","action2","action3","action4"];
+
+    const correctEmotion = {
+        action1: "Angry",
+        action2: "Happy",
+        action3: "Sad",
+        action4: "Afraid"
+    };
+
+    const actionName = {
+        action1: "Action1",
+        action2: "Action2",
+        action3: "Action3",
+        action4: "Action4"
+    };
+
+    function buildAccuracySummary(users){
+        let html = \`
+            <div class="card">
+                <h2>情绪识别正确率总表</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>动作</th>
+                            <th>正确答案</th>
+                            <th>完成人数</th>
+                            <th>正确人数</th>
+                            <th>正确率</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+        \`;
+
+        actions.forEach(action => {
+            let total = 0;
+            let correct = 0;
+
+            users.forEach(user => {
+                const r = user.records.find(item => item.action === action);
+
+                if(r){
+                    total++;
+
+                    if((r.raw?.mos1 || "") === correctEmotion[action]){
+                        correct++;
+                    }
+                }
+            });
+
+            const rate = total === 0
+                ? "0%"
+                : ((correct / total) * 100).toFixed(1) + "%";
+
+            html += \`
+                <tr>
+                    <td>\${actionName[action]}</td>
+                    <td>\${correctEmotion[action]}</td>
+                    <td>\${total}</td>
+                    <td>\${correct}</td>
+                    <td>\${rate}</td>
+                </tr>
+            \`;
+        });
+
+        html += \`
+                    </tbody>
+                </table>
+            </div>
+        \`;
+
+        return html;
+    }
+
+    app.innerHTML = buildAccuracySummary(users) + users.map(user => {
+
         function getRecord(action){
             return user.records.find(r => r.action === action);
         }
@@ -420,20 +493,22 @@ async function loadData(){
                 ? "<span class='done'>已完成</span>"
                 : "<span class='empty'>未完成</span>";
         }
+
         function emotionMark(action){
             const r = getRecord(action);
-        
+
             if(!r){
                 return "<span class='empty'>未完成</span>";
             }
-        
+
             const answer = r.raw?.mos1 || "";
             const correct = correctEmotion[action];
-        
+
             return answer === correct
                 ? "<span class='done'>✓ 正确</span>"
                 : "<span class='wrong'>✗ 错误</span>";
         }
+
         function detailTable(prefix, count, raw){
             let html = "<table class='question-table'><tbody>";
 
@@ -456,7 +531,7 @@ async function loadData(){
             if(!r){
                 return \`
                     <details>
-                        <summary>\${action} 作答详情</summary>
+                        <summary>\${actionName[action]} 作答详情</summary>
                         <p class="empty">该动作未完成</p>
                     </details>
                 \`;
@@ -466,7 +541,7 @@ async function loadData(){
 
             return \`
                 <details>
-                    <summary>\${action} 作答详情</summary>
+                    <summary>\${actionName[action]} 作答详情</summary>
 
                     <h4>MOS 每题作答</h4>
                     \${detailTable("mos",17,raw)}
@@ -490,6 +565,25 @@ async function loadData(){
                     <strong>年级：</strong>\${user.grade || "-"}　
                     <strong>专业：</strong>\${user.major || "-"}
                 </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>情绪识别正确性</th>
+                            <th>Action1</th>
+                            <th>Action2</th>
+                            <th>Action3</th>
+                            <th>Action4</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <th>MOS第一题</th>
+                            \${actions.map(a => \`<td>\${emotionMark(a)}</td>\`).join("")}
+                        </tr>
+                    </tbody>
+                </table>
 
                 <table>
                     <thead>
