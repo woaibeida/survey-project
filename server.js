@@ -351,6 +351,10 @@ th{
     color:#16a34a;
     font-weight:bold;
 }
+.wrong{
+    color:#dc2626;
+    font-weight:bold;
+}
 details{
     margin-top:18px;
     background:#fafafa;
@@ -400,7 +404,13 @@ async function loadData(){
 
     app.innerHTML = users.map(user => {
         const actions = ["action1","action2","action3","action4"];
-
+        const correctEmotion = {
+            action1: "Angry",
+            action2: "Happy",
+            action3: "Sad",
+            action4: "Afraid"
+        };
+                
         function getRecord(action){
             return user.records.find(r => r.action === action);
         }
@@ -410,7 +420,20 @@ async function loadData(){
                 ? "<span class='done'>已完成</span>"
                 : "<span class='empty'>未完成</span>";
         }
-
+        function emotionMark(action){
+            const r = getRecord(action);
+        
+            if(!r){
+                return "<span class='empty'>未完成</span>";
+            }
+        
+            const answer = r.raw?.mos1 || "";
+            const correct = correctEmotion[action];
+        
+            return answer === correct
+                ? "<span class='done'>✓ 正确</span>"
+                : "<span class='wrong'>✗ 错误</span>";
+        }
         function detailTable(prefix, count, raw){
             let html = "<table class='question-table'><tbody>";
 
